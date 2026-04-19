@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: .
+    environment:
+      - PYTHONUNBUFFERED=1
+    container_name: gym_backend
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+      # - "5678:5678"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: gym_db
+    restart: always
+    environment:
+      POSTGRES_DB: gym_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"

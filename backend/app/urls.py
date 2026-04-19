@@ -1,0 +1,32 @@
+from django.contrib import admin
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    #Accounts app urls
+    path("api/auth/", include("accounts.urls")),
+    
+    #Gyms app urls
+    path("api/gyms/", include("gyms.urls")),
+    
+    #Subscriptions app urls
+    path("api/subscriptions/", include("subscriptions.urls")),
+    
+    #Staff app urls
+    path("api/staff/", include("staff.urls")),
+    
+    #Members app urls
+    path("api/members/", include("members.urls")),
+    
+    #Dashboard app urls
+    path("api/dashboard/", include("dashboard.urls")),
+
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+
+    # Swagger UI
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    
+]
