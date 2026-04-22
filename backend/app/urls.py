@@ -21,6 +21,9 @@ urlpatterns = [
     #Members app urls
     path("api/members/", include("members.urls")),
     
+    #Expenses app urls
+    path("api/expenses/", include("expenses.urls")),
+    
     #Dashboard app urls
     path("api/dashboard/", include("dashboard.urls")),
 

@@ -18,6 +18,7 @@ import SuperAdminGyms from "./pages/SuperAdminGyms";
 import GymAddForm from "./pages/GymAddForm";
 import GymOwnerAddForm from "./pages/GymOwnerAddForm";
 import Leads from "./pages/Leads";
+import Expenses from "./pages/Expenses";
 
 export default function App() {
   return (
@@ -25,6 +26,11 @@ export default function App() {
       <SnackbarProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/staff" element={
+            <ProtectedRoute>
+              <AddStaff />
+            </ProtectedRoute>
+          } />
           <Route path="/staff/add" element={
             <ProtectedRoute>
               <AddStaff />
@@ -98,6 +104,11 @@ export default function App() {
           <Route path="/leads" element={
             <ProtectedRoute>
               <Leads />
+            </ProtectedRoute>
+          } />
+          <Route path="/expenses" element={
+            <ProtectedRoute>
+              <Expenses />
             </ProtectedRoute>
           } />
         </Routes>

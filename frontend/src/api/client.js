@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "../config/env";
 import { showSnackbar } from "../utils/snackbarService";
+import { logout } from "../utils/auth";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -32,6 +33,13 @@ API.interceptors.response.use(
       }
 
       showSnackbar(message, "error");
+
+      if (error.response?.status === 401) {
+        logout();
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
     } catch (e) {
       // ignore
     }

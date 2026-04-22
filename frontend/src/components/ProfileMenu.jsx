@@ -29,6 +29,8 @@ export default function ProfileMenu() {
   function handleLogout() {
     logout();
     localStorage.removeItem("user");
+    localStorage.removeItem("gym_id");
+    localStorage.removeItem("token");
     navigate("/login");
   }
 

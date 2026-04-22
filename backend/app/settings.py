@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'members',
     'staff',
     'common',
+    'expenses',
     'corsheaders',
     'django_filters'
 ]

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UserCog, UserPlus } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, BanknoteArrowDown, Users, UserCog, UserPlus } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
@@ -10,8 +10,9 @@ export default function Sidebar({ collapsed = false }) {
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
     { name: "Leads", path: "/leads", icon: UserPlus },
     { name: "Members", path: "/members", icon: Users },
-    { name: "Membership Plans", path: "/plans", icon: UserCog },
+    { name: "Membership Plans", path: "/plans", icon: BadgeCheck },
     { name: "Staff", path: "/staff", icon: UserCog },
+    { name: "Expenses", path: "/expenses", icon: BanknoteArrowDown },
   ];
 
   return (

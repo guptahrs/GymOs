@@ -1,4 +1,4 @@
-export default function DataTable({ columns, data }) {
+export default function DataTable({ columns, data, entity}) {
   return (
     <div className="bg-card rounded-2xl border border-gray-800 overflow-hidden">
 
@@ -26,7 +26,9 @@ export default function DataTable({ columns, data }) {
                 {columns.map((col, j) => (
                   <td key={j} className="px-6 py-4">
                     
-                    {col.accessor === "name" ? (
+                    {col.render ? (
+                      col.render(row)
+                    ) : col.accessor === "name" ? (
                       <div className="flex flex-col">
                         <span className="text-white">{row.name}</span>
                         <span className="text-xs text-gray-500">{row.email}</span>
@@ -49,7 +51,7 @@ export default function DataTable({ columns, data }) {
           ) : (
             <tr>
               <td colSpan={columns.length} className="text-center py-12 text-gray-500">
-                No members found
+                No {entity} found
               </td>
             </tr>
           )}

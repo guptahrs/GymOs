@@ -1,38 +1,75 @@
+import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import DataTable from "../components/DataTable";
-import BackButton from "../components/BackButton";
 import { useSnackbar } from "../context/SnackbarContext";
-import { useState, useEffect } from "react";
+import API from "../api/client";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const emptyLeadForm = {
+  first_name: "",
+  last_name: "",
+  phone: "",
+  email: "",
+  gender: "",
+  dob: "",
+};
+
+const emptyAddress = {
+  address_line_1: "",
+  address_line_2: "",
+  city: "",
+  state: "",
+  country: "",
+  pincode: "",
+  landmark: "",
+};
 
 export default function Leads() {
   const [leads, setLeads] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ first_name: "", last_name: "", phone: "", email: "", gender: "", dob: "" });
+  const [form, setForm] = useState(emptyLeadForm);
   const [errors, setErrors] = useState({});
   const { showSnackbar } = useSnackbar();
-  const [showConvertModal, setShowConvertModal] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [convertStep, setConvertStep] = useState(0); // 0: address, 1: payment
 
-  const [address, setAddress] = useState({ line1: "", line2: "", city: "", state: "", country: "", pincode: "" });
-  const [payment, setPayment] = useState({ amount: "", payment_mode: "cash", transaction_id: "" });
-  const [convertErrors, setConvertErrors] = useState({});
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [joinStep, setJoinStep] = useState(0);
+  const [address, setAddress] = useState(emptyAddress);
+  const [planForm, setPlanForm] = useState({ plan_id: "", amount_paid: "" });
+  const [joinErrors, setJoinErrors] = useState({});
+  const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/members/leads/`);
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : null;
-        if (!res.ok) throw new Error((json && json.message) || res.statusText || 'Failed to fetch leads');
-        setLeads((json && json.data) || []);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
+    fetchLeads();
+    fetchPlans();
   }, []);
+
+  async function fetchLeads() {
+    try {
+      const res = await API.get("/members/leads/");
+      setLeads(res.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function fetchPlans() {
+    try {
+      const res = await API.get("/members/plans/");
+      setPlans(res.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function openJoinModal(lead) {
+    setSelectedLead(lead);
+    setJoinStep(0);
+    setAddress(emptyAddress);
+    setPlanForm({ plan_id: "", amount_paid: "" });
+    setJoinErrors({});
+    setShowJoinModal(true);
+  }
 
   const columns = [
     { header: "Name", accessor: "name" },
@@ -45,71 +82,63 @@ export default function Leads() {
       header: "Action",
       accessor: "action",
       render: (row) => (
-        <button
-          className="btn-primary"
-          onClick={() => {
-            setSelectedLead(row);
-            setConvertStep(0);
-            setAddress({ line1: "", line2: "", city: "", state: "", country: "", pincode: "" });
-            setPayment({ amount: "", payment_mode: "cash", transaction_id: "" });
-            setConvertErrors({});
-            setShowConvertModal(true);
-          }}
-        >
-          Convert
+        <button className="btn-primary" onClick={() => openJoinModal(row)}>
+          Mark as Joined
         </button>
       ),
     },
   ];
 
   function validateAddress() {
-    let err = {};
-    if (!address.line1.trim()) err.line1 = "Address required";
+    const err = {};
+    if (!address.address_line_1.trim()) err.address_line_1 = "Address required";
     if (!address.city.trim()) err.city = "City required";
+    if (!address.state.trim()) err.state = "State required";
+    if (!address.country.trim()) err.country = "Country required";
     if (!address.pincode.trim()) err.pincode = "Pincode required";
-    setConvertErrors(err);
+    else if (!/^[0-9]{6}$/.test(address.pincode)) err.pincode = "Enter valid 6 digit pincode";
+    setJoinErrors(err);
     return Object.keys(err).length === 0;
   }
 
-  function validatePayment() {
-    let err = {};
-    if (!payment.amount || Number(payment.amount) <= 0) err.amount = "Valid amount required";
-    if (!payment.payment_mode) err.payment_mode = "Payment mode required";
-    setConvertErrors(err);
+  function validatePlan() {
+    const err = {};
+    if (planForm.amount_paid && Number(planForm.amount_paid) < 0) {
+      err.amount_paid = "Paid amount cannot be negative";
+    }
+    if (!planForm.plan_id && planForm.amount_paid) {
+      err.plan_id = "Select a plan before entering paid amount";
+    }
+    setJoinErrors(err);
     return Object.keys(err).length === 0;
   }
 
-  async function submitConvert() {
+  async function submitJoin() {
     if (!selectedLead) return;
     try {
+      setIsJoining(true);
       const leadId = selectedLead.lead_id || selectedLead.id;
       const payload = {
         address,
-        payment,
-        gym_id: selectedLead.gym_id || undefined,
+        gym_id: selectedLead.gym_id || localStorage.getItem("gym_id") || undefined,
+        plan_id: planForm.plan_id || undefined,
+        amount_paid: planForm.plan_id ? planForm.amount_paid || 0 : 0,
       };
 
-      const res = await fetch(`${API_BASE}/api/members/leads/${leadId}/convert/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : null;
-      if (!res.ok) throw new Error((data && data.message) || res.statusText || 'Convert failed');
-
-      setLeads(prev => prev.map(l => (l.lead_id === leadId || l.id === leadId) ? { ...l, status: 'converted' } : l));
-      showSnackbar('Lead converted to member', 'success');
-      setShowConvertModal(false);
+      const res = await API.post(`/members/leads/${leadId}/convert/`, payload);
+      setLeads((prev) => prev.filter((lead) => (lead.lead_id || lead.id) !== leadId));
+      showSnackbar(res.data?.message || "Lead marked as joined", "success");
+      setShowJoinModal(false);
       setSelectedLead(null);
     } catch (err) {
-      showSnackbar(err.message || 'An error occurred during convert', 'error');
+      showSnackbar(err.response?.data?.message || err.message || "Failed to mark lead as joined", "error");
+    } finally {
+      setIsJoining(false);
     }
   }
 
-  function validate() {
-    let err = {};
+  function validateLead() {
+    const err = {};
     if (!form.first_name.trim()) err.first_name = "First name required";
     if (!form.last_name.trim()) err.last_name = "Last name required";
     if (!form.phone) err.phone = "Phone required";
@@ -122,7 +151,7 @@ export default function Leads() {
 
   async function handleAddLead(e) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validateLead()) return;
 
     try {
       const payload = {
@@ -132,135 +161,158 @@ export default function Leads() {
         phone: form.phone,
         gender: form.gender,
         dob: form.dob,
+        gym_id: localStorage.getItem("gym_id") || undefined,
       };
 
-      const res = await fetch(`${API_BASE}/api/members/leads/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const res = await API.post("/members/leads/", payload);
+      const newLead = {
+        lead_id: res.data?.data?.lead_id || Date.now().toString(),
+        name: `${form.first_name} ${form.last_name}`.trim(),
+        first_name: form.first_name,
+        last_name: form.last_name,
+        phone: form.phone,
+        email: form.email,
+        gender: form.gender,
+        dob: form.dob,
+        status: "lead",
+      };
 
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : null;
-      if (!res.ok) throw new Error((data && data.message) || res.statusText || 'Failed to create lead');
-
-      const newLead = { lead_id: data.data?.lead_id || Date.now().toString(), name: `${form.first_name} ${form.last_name}`.trim(), first_name: form.first_name, last_name: form.last_name, phone: form.phone, email: form.email, gender: form.gender, dob: form.dob, status: 'lead' };
-      setLeads(prev => [newLead, ...prev]);
+      setLeads((prev) => [newLead, ...prev]);
       setShowModal(false);
-      setForm({ first_name: "", last_name: "", phone: "", email: "", gender: "", dob: "" });
+      setForm(emptyLeadForm);
       setErrors({});
+      showSnackbar(res.data?.message || "Lead created", "success");
     } catch (err) {
-      showSnackbar(err.message || 'An error occurred', 'error');
+      showSnackbar(err.response?.data?.message || err.message || "An error occurred", "error");
     }
   }
 
   return (
     <MainLayout>
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3 mb-6">
-          {/* <BackButton />
-          <h1 className="text-2xl font-semibold tracking-tight leading-none">
-            Leads
-          </h1> */}
-        </div>
+        <div />
         <button className="btn-primary" onClick={() => setShowModal(true)}>+ New Lead</button>
       </div>
 
-      <DataTable columns={columns} data={leads} />
+      <DataTable columns={columns} data={leads} entity="Leads" />
 
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <form onSubmit={handleAddLead} style={{ background: '#181c24', padding: 32, borderRadius: 16, minWidth: 340, boxShadow: '0 4px 32px #0008' }}>
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/65">
+          <form onSubmit={handleAddLead} className="w-[340px] rounded-2xl bg-[#181c24] p-8 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">Add New Lead</h2>
-              <button type="button" aria-label="Close" onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 24, lineHeight: 1, cursor: 'pointer', marginLeft: 8 }}>&times;</button>
+              <button type="button" aria-label="Close" onClick={() => setShowModal(false)} className="text-2xl leading-none text-white">&times;</button>
             </div>
+            <LeadInput placeholder="First Name" value={form.first_name} error={errors.first_name} onChange={(value) => setForm({ ...form, first_name: value })} />
+            <LeadInput placeholder="Last Name" value={form.last_name} error={errors.last_name} onChange={(value) => setForm({ ...form, last_name: value })} />
+            <LeadInput placeholder="Phone" value={form.phone} error={errors.phone} onChange={(value) => setForm({ ...form, phone: value })} />
+            <LeadInput placeholder="Email" value={form.email} error={errors.email} onChange={(value) => setForm({ ...form, email: value })} />
             <div className="mb-3">
-              <input className="w-full p-2 rounded bg-card border border-gray-700 text-white" placeholder="First Name" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
-              {errors.first_name && <div className="text-red-400 text-xs mt-1">{errors.first_name}</div>}
-            </div>
-            <div className="mb-3">
-              <input className="w-full p-2 rounded bg-card border border-gray-700 text-white" placeholder="Last Name" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
-              {errors.last_name && <div className="text-red-400 text-xs mt-1">{errors.last_name}</div>}
-            </div>
-            <div className="mb-3">
-              <input className="w-full p-2 rounded bg-card border border-gray-700 text-white" placeholder="Phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-              {errors.phone && <div className="text-red-400 text-xs mt-1">{errors.phone}</div>}
-            </div>
-            <div className="mb-3">
-              <input className="w-full p-2 rounded bg-card border border-gray-700 text-white" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-              {errors.email && <div className="text-red-400 text-xs mt-1">{errors.email}</div>}
-            </div>
-            <div className="mb-3">
-              <select className="w-full p-2 rounded bg-card border border-gray-700 text-white" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}>
+              <select className="w-full rounded border border-gray-700 bg-card p-2 text-white" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
                 <option value="">Select Gender</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="other">Other</option>
               </select>
-              {errors.gender && <div className="text-red-400 text-xs mt-1">{errors.gender}</div>}
+              {errors.gender && <div className="mt-1 text-xs text-red-400">{errors.gender}</div>}
             </div>
-            <div className="mb-3">
-              <input type="date" className="w-full p-2 rounded bg-card border border-gray-700 text-white" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} />
-              {errors.dob && <div className="text-red-400 text-xs mt-1">{errors.dob}</div>}
-            </div>
-            <div className="flex gap-2 mt-4">
+            <LeadInput type="date" value={form.dob} error={errors.dob} onChange={(value) => setForm({ ...form, dob: value })} />
+            <div className="mt-4 flex gap-2">
               <button type="submit" className="btn-primary">Add Lead</button>
-              <button type="button" className="px-4 py-2 rounded bg-gray-700 text-white" onClick={() => setShowModal(false)}>Cancel</button>
+              <button type="button" className="rounded bg-gray-700 px-4 py-2 text-white" onClick={() => setShowModal(false)}>Cancel</button>
             </div>
           </form>
         </div>
       )}
-      {showConvertModal && selectedLead && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ background: '#181c24', padding: 24, borderRadius: 12, width: 520, color: '#fff' }}>
-            <h2 className="text-lg font-semibold mb-2">Convert Lead: {selectedLead.name || selectedLead.first_name}</h2>
-            <div style={{ minHeight: 180 }}>
-              {convertStep === 0 && (
+
+      {showJoinModal && selectedLead && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/65">
+          <div className="w-[560px] rounded-xl bg-[#181c24] p-6 text-white">
+            <h2 className="mb-2 text-lg font-semibold">Mark as Joined: {selectedLead.name || selectedLead.first_name}</h2>
+            <div className="mb-4 flex gap-2 text-sm">
+              <span className={`rounded px-3 py-1 ${joinStep === 0 ? "bg-primary text-black" : "bg-gray-700 text-white"}`}>Address</span>
+              <span className={`rounded px-3 py-1 ${joinStep === 1 ? "bg-primary text-black" : "bg-gray-700 text-white"}`}>Plan</span>
+            </div>
+
+            <div className="min-h-[260px]">
+              {joinStep === 0 && (
                 <div>
-                  <h3 className="font-medium mb-2">Step 1 — Address</h3>
-                  <div className="mb-2"><input placeholder="Address line 1" value={address.line1} onChange={e => setAddress({ ...address, line1: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  {convertErrors.line1 && <div className="text-red-400 text-xs mb-2">{convertErrors.line1}</div>}
-                  <div className="mb-2"><input placeholder="Address line 2" value={address.line2} onChange={e => setAddress({ ...address, line2: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  <div className="mb-2"><input placeholder="City" value={address.city} onChange={e => setAddress({ ...address, city: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  {convertErrors.city && <div className="text-red-400 text-xs mb-2">{convertErrors.city}</div>}
-                  <div className="mb-2"><input placeholder="State" value={address.state} onChange={e => setAddress({ ...address, state: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  <div className="mb-2"><input placeholder="Country" value={address.country} onChange={e => setAddress({ ...address, country: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  <div className="mb-2"><input placeholder="Pincode" value={address.pincode} onChange={e => setAddress({ ...address, pincode: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  {convertErrors.pincode && <div className="text-red-400 text-xs mb-2">{convertErrors.pincode}</div>}
+                  <h3 className="mb-2 font-medium">Step 1 - Address</h3>
+                  <JoinInput placeholder="Address line 1" value={address.address_line_1} error={joinErrors.address_line_1} onChange={(value) => setAddress({ ...address, address_line_1: value })} />
+                  <JoinInput placeholder="Address line 2" value={address.address_line_2} onChange={(value) => setAddress({ ...address, address_line_2: value })} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <JoinInput placeholder="City" value={address.city} error={joinErrors.city} onChange={(value) => setAddress({ ...address, city: value })} />
+                    <JoinInput placeholder="State" value={address.state} error={joinErrors.state} onChange={(value) => setAddress({ ...address, state: value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <JoinInput placeholder="Country" value={address.country} error={joinErrors.country} onChange={(value) => setAddress({ ...address, country: value })} />
+                    <JoinInput placeholder="Pincode" value={address.pincode} error={joinErrors.pincode} onChange={(value) => setAddress({ ...address, pincode: value })} />
+                  </div>
+                  <JoinInput placeholder="Landmark" value={address.landmark} onChange={(value) => setAddress({ ...address, landmark: value })} />
                 </div>
               )}
 
-              {convertStep === 1 && (
+              {joinStep === 1 && (
                 <div>
-                  <h3 className="font-medium mb-2">Step 2 — Payment</h3>
-                  <div className="mb-2"><input placeholder="Amount" value={payment.amount} onChange={e => setPayment({ ...payment, amount: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
-                  {convertErrors.amount && <div className="text-red-400 text-xs mb-2">{convertErrors.amount}</div>}
+                  <h3 className="mb-2 font-medium">Step 2 - Plan</h3>
                   <div className="mb-2">
-                    <select value={payment.payment_mode} onChange={e => setPayment({ ...payment, payment_mode: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white">
-                      <option value="cash">Cash</option>
-                      <option value="card">Card</option>
-                      <option value="upi">UPI</option>
+                    <select value={planForm.plan_id} onChange={(e) => setPlanForm({ ...planForm, plan_id: e.target.value, amount_paid: "" })} className="w-full rounded border border-gray-700 bg-card p-2 text-white">
+                      <option value="">No plan selected - payment due</option>
+                      {plans.map((plan) => (
+                        <option key={plan.plan_id} value={plan.plan_id}>
+                          {plan.name} - Rs {plan.price} / {plan.duration_days} days
+                        </option>
+                      ))}
                     </select>
+                    {joinErrors.plan_id && <div className="mt-1 text-xs text-red-400">{joinErrors.plan_id}</div>}
                   </div>
-                  <div className="mb-2"><input placeholder="Transaction ID (optional)" value={payment.transaction_id} onChange={e => setPayment({ ...payment, transaction_id: e.target.value })} className="w-full p-2 rounded bg-card border border-gray-700 text-white" /></div>
+                  {planForm.plan_id && (
+                    <JoinInput
+                      type="number"
+                      placeholder="Paid amount (optional)"
+                      value={planForm.amount_paid}
+                      error={joinErrors.amount_paid}
+                      onChange={(value) => setPlanForm({ ...planForm, amount_paid: value })}
+                    />
+                  )}
+                  {!planForm.plan_id && <p className="mt-2 text-sm text-gray-400">Member will be created with payment status due.</p>}
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between mt-4">
+            <div className="mt-4 flex justify-between">
+              <button className="rounded bg-gray-700 px-3 py-1 text-white" onClick={() => { setShowJoinModal(false); setSelectedLead(null); }}>Cancel</button>
               <div>
-                <button className="px-3 py-1 rounded bg-gray-700 text-white mr-2" onClick={() => { setShowConvertModal(false); setSelectedLead(null); }}>Cancel</button>
-              </div>
-              <div>
-                {convertStep > 0 && <button className="px-3 py-1 rounded bg-gray-700 text-white mr-2" onClick={() => setConvertStep(s => Math.max(0, s-1))}>Back</button>}
-                {convertStep === 0 && <button className="btn-primary" onClick={() => { if (validateAddress()) setConvertStep(1); }}>Next</button>}
-                {convertStep === 1 && <button className="btn-primary" onClick={() => { if (validatePayment()) submitConvert(); }}>Finish</button>}
+                {joinStep > 0 && <button className="mr-2 rounded bg-gray-700 px-3 py-1 text-white" onClick={() => setJoinStep(0)}>Back</button>}
+                {joinStep === 0 && <button className="btn-primary" onClick={() => { if (validateAddress()) setJoinStep(1); }}>Next</button>}
+                {joinStep === 1 && (
+                  <button className="btn-primary disabled:opacity-50" disabled={isJoining} onClick={() => { if (validatePlan()) submitJoin(); }}>
+                    {isJoining ? "Saving..." : "Mark as Joined"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
     </MainLayout>
+  );
+}
+
+function LeadInput({ type = "text", placeholder = "", value, error, onChange }) {
+  return (
+    <div className="mb-3">
+      <input type={type} className="w-full rounded border border-gray-700 bg-card p-2 text-white" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+      {error && <div className="mt-1 text-xs text-red-400">{error}</div>}
+    </div>
+  );
+}
+
+function JoinInput({ type = "text", placeholder, value, error, onChange }) {
+  return (
+    <div className="mb-2">
+      <input type={type} min={type === "number" ? "0" : undefined} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded border border-gray-700 bg-card p-2 text-white" />
+      {error && <div className="mt-1 text-xs text-red-400">{error}</div>}
+    </div>
   );
 }

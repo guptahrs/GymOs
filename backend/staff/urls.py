@@ -1,18 +1,8 @@
 from django.urls import path
-from staff.views.staff_view import (
-    CreateStaffBasicView,
-    AddStaffDetailsView,
-    ListStaffView,
-    UpdateStaffSalaryView,
-    UpdateStaffBasicView,
-    UpdateStaffAddressView
-)
+from staff.views.staff_view import StaffDetailView, StaffListCreateView
+
 
 urlpatterns = [
-    path("create/basic/", CreateStaffBasicView.as_view()),
-    path("add-details/", AddStaffDetailsView.as_view()),
-    path("update/basic/", UpdateStaffBasicView.as_view()),
-    path("update/address/", UpdateStaffAddressView.as_view()),
-    path("update/salary/", UpdateStaffSalaryView.as_view()),
-    path("list/", ListStaffView.as_view()),
+    path("", StaffListCreateView.as_view()),
+    path("<int:staff_id>/", StaffDetailView.as_view()),
 ]

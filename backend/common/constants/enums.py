@@ -29,8 +29,24 @@ class OnboardingStep(BaseEnum):
     ADDRESS = "address"
     SUBSCRIPTION = "subscription"
     COMPLETED = "completed"
+
+class PaymentStatus(BaseEnum):
+    PAID = "paid"
+    DUE = "due"
     
 class Gender(BaseEnum):
     MALE = "male"
     FEMALE = "female"
     OTHER = "other"
+
+class NotificationStatus(BaseEnum):
+
+        PENDING = "PENDING"
+        SUCCESS = "SUCCESS"
+        FAILED = "FAILED"
+    
+class PaymentStatus(BaseEnum):
+    PAID = "PAID"
+    DUE = "DUE"
+    PARTIAL = "PARTIAL"
+    OVERDUE = "OVERDUE"

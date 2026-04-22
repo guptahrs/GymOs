@@ -121,7 +121,7 @@ export default function AddMember() {
   return (
     <MainLayout>
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32 }}>
-        <BackButton />
+        {/* <BackButton /> */}
         <div style={{ flex: 1 }}>
           <Stepper step={step} setStep={setStep} />
         </div>
