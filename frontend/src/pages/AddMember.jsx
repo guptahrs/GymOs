@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { useSnackbar } from "../context/SnackbarContext";
 import { motion } from "framer-motion";
 import MainLayout from "../layouts/MainLayout";
 import Stepper from "../components/Stepper";
 import FloatingInput from "../components/FloatingInput";
 import FloatingSelect from "../components/FloatingSelect";
 import FloatingDatePicker from "../components/FloatingDatePicker";
+import BackButton from "../components/BackButton";
 import API from "../api/client";
+import { useMutation } from '@tanstack/react-query';
 
 
 export default function AddMember() {
+  const { showSnackbar } = useSnackbar();
   const [step, setStep] = useState(1);
   const [memberId, setMemberId] = useState(null);
 
@@ -79,24 +83,49 @@ export default function AddMember() {
 
   const handleBasic = async () => {
     if (!validateBasic()) return;
-    const res = await API.post("/members/create/", form);
-    setMemberId(res.data.data.id);
-    setStep(2);
+    try {
+      const gym_id = localStorage.getItem("gym_id");
+      const res = await createMember.mutateAsync({ ...form, gym_id });
+      setMemberId(res.data.member_id);
+      setStep(2);
+      showSnackbar(res.message || "Member created", "success");
+    } catch (e) {
+      const msg = e.response?.data?.message || "Failed to create member";
+      setErrors({ api: msg });
+      showSnackbar(msg, "error");
+    }
   };
 
   const handleAddress = async () => {
     if (!validateAddress()) return;
-    await API.post("/members/address/", {
-      member_id: memberId,
-      ...address,
-    });
-    alert("Done 🚀");
+    try {
+      const res = await addAddress.mutateAsync({ member_id: memberId, ...address });
+      showSnackbar(res.message || "Address saved", "success");
+    } catch (e) {
+      const msg = e.response?.data?.message || "Failed to save address";
+      setErrors({ api: msg });
+      showSnackbar(msg, "error");
+    }
   };
+
+  const { mutateAsync: createMember } = useMutation(async (payload) => {
+    const res = await API.post('/members/create/', payload);
+    return res.data;
+  });
+
+  const { mutateAsync: addAddress } = useMutation(async (payload) => {
+    const res = await API.post('/members/address/', payload);
+    return res.data;
+  });
 
   return (
     <MainLayout>
-
-      <Stepper step={step} setStep={setStep} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32 }}>
+        <BackButton />
+        <div style={{ flex: 1 }}>
+          <Stepper step={step} setStep={setStep} />
+        </div>
+      </div>
 
       {/* Progress 
       <div className="w-full bg-gray-800 h-2 rounded mb-6">
@@ -117,6 +146,7 @@ export default function AddMember() {
         {/* STEP 1 */}
         {step === 1 && (
           <>
+            {errors.api && <div className="text-red-400">{errors.api}</div>}
             <FloatingInput label="First Name" value={form.first_name}
               error={errors.first_name}
               onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
@@ -164,6 +194,7 @@ export default function AddMember() {
         {/* STEP 2 */}
         {step === 2 && (
           <>
+            {errors.api && <div className="text-red-400">{errors.api}</div>}
             <FloatingInput label="Address Line 1" value={address.address_line_1}
               error={errors.address_line_1}
               onChange={(e) => setAddress({ ...address, address_line_1: e.target.value })} />

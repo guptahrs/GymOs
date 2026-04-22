@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import Snackbar from "../components/Snackbar";
+import { registerSnackbar, unregisterSnackbar } from "../utils/snackbarService";
 
 const SnackbarContext = createContext();
 
@@ -18,6 +19,11 @@ export function SnackbarProvider({ children }) {
   const hideSnackbar = () => {
     setSnackbar({ message: "", type: "info" });
   };
+  // Register the provider's showSnackbar so non-React modules can call it
+  useEffect(() => {
+    registerSnackbar(showSnackbar);
+    return () => unregisterSnackbar();
+  }, []);
 
   return (
     <SnackbarContext.Provider value={{ showSnackbar }}>

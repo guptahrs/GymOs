@@ -15,6 +15,8 @@ class CreateMemberBasicView(GenericAPIView):
     serializer_class = MemberCreateSerializer
 
     def post(self, request):
+        data = request.data
+        data["password"] = data.get("password", "defaultpassword123")  # Set default password if not provided
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -39,15 +41,15 @@ class CreateMemberBasicView(GenericAPIView):
 
         return APIResponse.success(
             message="Member basic created",
-            data={"member_id": str(member.id)}
+            data={"member_id": str(member.member_id), "user_id": str(user.user_id)}
         )
 
 class AddMemberAddressView(GenericAPIView):
 
     def post(self, request):
-        member_id = request.data.get("member_id")
+        member_id = request.data.get("user_id")
 
-        member = Member.objects.get(id=member_id)
+        member = Member.objects.get(user_id=member_id)
 
         address = create_address(request.data)
 

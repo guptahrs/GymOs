@@ -39,9 +39,22 @@ class LoginView(GenericAPIView):
             "user_id": str(user.user_id),
             "email": user.email,
             "user_type": user.user_type,
+            "gym_id": str(user.gym_id) if user.gym_id else None,
             "exp": int((timezone.now() + timedelta(minutes=60)).timestamp()),
         }
 
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-        return APIResponse.success(message="Login successful", data={"token": token})
+        return APIResponse.success(
+            message="Login successful",
+            data={
+                "token": token,
+                "user_type": user.user_type,
+                "gym_id": str(user.gym_id) if user.gym_id else None,
+                "user details": {
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                }
+            }
+        )

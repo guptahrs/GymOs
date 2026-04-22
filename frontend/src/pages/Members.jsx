@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import API from "../api/client";
+import { useQuery } from '@tanstack/react-query';
 import MainLayout from "../layouts/MainLayout";
+import BackButton from "../components/BackButton";
 import DataTable from "../components/DataTable";
 import { useNavigate } from "react-router-dom";
 
@@ -12,25 +14,19 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
 
-  const fetchMembers = async () => {
-    try {
-      const res = await API.get(
-        `/members/?search=${search}&page=${page}`
-      );
-
-      const data = res.data.data;
-
-      setMembers(data.results);
-      setCount(data.count);
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const { data: membersData, isLoading } = useQuery([
+    'members', { search, page }
+  ], async () => {
+    const res = await API.get(`/members/?search=${search}&page=${page}`);
+    return res.data.data;
+  }, { keepPreviousData: true });
 
   useEffect(() => {
-    fetchMembers();
-  }, [search, page]);
+    if (membersData) {
+      setMembers(membersData.results || []);
+      setCount(membersData.count || 0);
+    }
+  }, [membersData]);
 
   const columns = [
     { header: "Name", accessor: "name" },
@@ -42,16 +38,12 @@ export default function Members() {
   return (
     <MainLayout>
       <div className="w-full">{/* 🔍 Search */}
-        <h1 className="text-2xl font-semibold mb-6">Members</h1>
-        <button
-          onClick={() => {
-              console.log("clicked"); // 👈 debug
-              navigate("/members/add");
-            }}
-          className="px-4 py-2 bg-primary rounded-lg text-white hover:shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-        >
-          + Add Member
-        </button>
+        <div className="flex items-center gap-3 mb-6">
+          {/* <BackButton />
+          <h1 className="text-2xl font-semibold tracking-tight leading-none">
+            Members
+          </h1> */}
+        </div>
         <div className="flex items-center justify-between mb-6">
 
           {/* LEFT */}

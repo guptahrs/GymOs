@@ -21,10 +21,8 @@ class Gym(BaseModel):
     phone = models.CharField(max_length=15)
 
    # 🔥 relation
-    address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
     
-    # 🔥 owner (important)
-    owner_id = models.UUIDField()
 
     def __str__(self):
         return self.name

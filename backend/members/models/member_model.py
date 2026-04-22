@@ -5,6 +5,7 @@ from common.constants.enums import Gender, OnboardingStep
 
 
 class Member(BaseModel):
+    member_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField("accounts.User", on_delete=models.CASCADE)
 
     gym_id = models.UUIDField()

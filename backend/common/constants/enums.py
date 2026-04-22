@@ -10,6 +10,7 @@ class UserType(BaseEnum):
     SUPER_ADMIN = "super_admin"
     GYM_OWNER = "gym_owner"
     STAFF = "staff"
+    LEAD = "lead"
     MEMBER = "member"
     NORMAL_USER = "normal_user"
 
