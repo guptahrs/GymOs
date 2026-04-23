@@ -8,10 +8,10 @@ export default function MainLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-dark text-white">
+    <div className="flex min-h-screen overflow-x-hidden bg-dark text-white">
 
       {/* Sidebar */}
-      <div className={`${collapsed ? "w-20" : "w-64"} min-h-screen bg-card transition-all duration-300 relative`}>
+      <div className={`${collapsed ? "w-20" : "w-64"} relative min-h-screen flex-none bg-card transition-all duration-300`}>
         <button
           aria-label="Toggle sidebar"
           onClick={() => setCollapsed((s) => !s)}
@@ -23,7 +23,7 @@ export default function MainLayout({ children }) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 w-full p-6">
+      <div className="min-w-0 flex-1 p-6">
         <TopHeader />
         {children}
       </div>

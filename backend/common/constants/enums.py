@@ -50,3 +50,9 @@ class PaymentStatus(BaseEnum):
     DUE = "DUE"
     PARTIAL = "PARTIAL"
     OVERDUE = "OVERDUE"
+
+
+class ShiftChoices(BaseEnum):
+    MORNING = "MORNING"
+    EVENING = "EVENING"
+    BOTH = "BOTH"

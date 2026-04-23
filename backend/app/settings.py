@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'staff',
     'common',
     'expenses',
+    'notifications',
     'corsheaders',
     'django_filters'
 ]
@@ -156,3 +157,6 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Gym SaaS API',
     'VERSION': '1.0.0',
 }
+
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")

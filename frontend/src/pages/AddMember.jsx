@@ -85,11 +85,12 @@ export default function AddMember() {
     if (!validateBasic()) return;
     try {
       const gym_id = localStorage.getItem("gym_id");
-      const res = await createMember.mutateAsync({ ...form, gym_id });
+      const res = await createMember({ ...form, gym_id });
       setMemberId(res.data.member_id);
       setStep(2);
       showSnackbar(res.message || "Member created", "success");
     } catch (e) {
+      console.log("Error Message", e)
       const msg = e.response?.data?.message || "Failed to create member";
       setErrors({ api: msg });
       showSnackbar(msg, "error");

@@ -56,7 +56,7 @@ class MemberSubscription(BaseModel):
 
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     remaining_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
+    estimated_remaining_payment_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return str(self.subscription_id)

@@ -19,6 +19,7 @@ import GymAddForm from "./pages/GymAddForm";
 import GymOwnerAddForm from "./pages/GymOwnerAddForm";
 import Leads from "./pages/Leads";
 import Expenses from "./pages/Expenses";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -109,6 +110,26 @@ export default function App() {
           <Route path="/expenses" element={
             <ProtectedRoute>
               <Expenses />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/general" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/account" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/notifications" element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           } />
         </Routes>

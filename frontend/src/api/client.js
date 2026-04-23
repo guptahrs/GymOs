@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "../config/env";
 import { showSnackbar } from "../utils/snackbarService";
-import { logout } from "../utils/auth";
+import { isTokenExpired, logout } from "../utils/auth";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -10,8 +10,13 @@ const API = axios.create({
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
-  if (token) {
+  if (token && !isTokenExpired(token)) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (token) {
+    logout();
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
   }
 
   return config;

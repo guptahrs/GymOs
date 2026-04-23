@@ -22,6 +22,7 @@ export default function Members() {
   const [isSavingPlan, setIsSavingPlan] = useState(false);
   const [isSavingMember, setIsSavingMember] = useState(false);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
+  const [dueAmount, setDueAmount] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -52,6 +53,47 @@ export default function Members() {
     try {
       const res = await API.get("/members/plans/");
       setPlans(res.data?.data || []);
+      // try to detect any existing remaining/due amount on the member object
+      const getDue = (m) => {
+        if (!m) return null;
+        const candidates = [
+          m.remaining_amount,
+          m.remaining,
+          m.due_amount,
+          m.amount_due,
+          m.remainingAmount,
+          m.dueAmount,
+        ];
+
+        for (const c of candidates) {
+          if (c !== undefined && c !== null && c !== "") return c;
+        }
+
+        // check nested subscription properties commonly used
+        if (m.subscription && m.subscription.remaining_amount) return m.subscription.remaining_amount;
+        if (m.last_subscription && m.last_subscription.remaining_amount) return m.last_subscription.remaining_amount;
+        if (m.latest_subscription && m.latest_subscription.remaining_amount) return m.latest_subscription.remaining_amount;
+
+        return null;
+      };
+
+      const detected = getDue(member);
+      setDueAmount(detected ?? null);
+      if (detected !== null && detected !== undefined && detected !== "") {
+        setPlanForm((p) => ({ ...p, remaining_amount: String(detected) }));
+      } else {
+        // if not present on member object, fetch latest subscription from backend
+        try {
+          const subRes = await API.get(`/members/${member.member_id}/latest-subscription/`);
+          const sub = subRes.data?.data;
+          if (sub && sub.remaining_amount !== null && sub.remaining_amount !== undefined && String(sub.remaining_amount) !== "") {
+            setDueAmount(sub.remaining_amount);
+            setPlanForm((p) => ({ ...p, remaining_amount: String(sub.remaining_amount) }));
+          }
+        } catch (err) {
+          // ignore — optional enhancement; keep original behavior
+        }
+      }
     } catch (err) {
       showSnackbar(err.response?.data?.message || "Failed to fetch plans", "error");
     }
@@ -136,7 +178,8 @@ export default function Members() {
       });
 
       showSnackbar(res.data?.message || "Plan assigned", "success");
-      setSelectedMember(null);
+        setSelectedMember(null);
+        setDueAmount(null);
       queryClient.invalidateQueries(["members"]);
     } catch (err) {
       showSnackbar(err.response?.data?.message || err.message || "Failed to assign plan", "error");
@@ -159,25 +202,34 @@ export default function Members() {
       accessor: "action",
       render: (row) => (
         <div className="flex items-center gap-2">
-          {String(row.payment_status).toLowerCase() === "due" ? (
-            <button
-              title="Select Plan"
-              aria-label={`Pay plan for ${row.name}`}
-              className="rounded-lg bg-primary p-2 text-black hover:opacity-90"
-              onClick={() => openPlanModal(row)}
-            >
-              <CreditCard size={16} />
-            </button>
-          ) : (
-            <button
-              disabled
-              title="Plan activated"
-              aria-label={`Plan activated for ${row.name}`}
-              className="rounded-lg border border-green-500/30 bg-green-500/10 p-2 text-green-300 disabled:cursor-not-allowed disabled:opacity-80"
-            >
-              <BadgeCheck size={16} />
-            </button>
-          )}
+          {(() => {
+            const status = String(row.payment_status || "").toLowerCase();
+            const canBuy = status.includes("due") || status.includes("partial");
+
+            if (canBuy) {
+              return (
+                <button
+                  title="Select Plan"
+                  aria-label={`Pay plan for ${row.name}`}
+                  className="rounded-lg bg-primary p-2 text-black hover:opacity-90"
+                  onClick={() => openPlanModal(row)}
+                >
+                  <CreditCard size={16} />
+                </button>
+              );
+            }
+
+            return (
+              <button
+                disabled
+                title="Plan activated"
+                aria-label={`Plan activated for ${row.name}`}
+                className="rounded-lg border border-green-500/30 bg-green-500/10 p-2 text-green-300 disabled:cursor-not-allowed disabled:opacity-80"
+              >
+                <BadgeCheck size={16} />
+              </button>
+            );
+          })()}
           <button onClick={() => openEditModal(row)} aria-label={`Edit ${row.name}`} className="rounded border border-gray-700 bg-card p-2 hover:bg-white/5">
             <Edit2 size={16} />
           </button>
@@ -242,6 +294,9 @@ export default function Members() {
           <div className="w-[420px] rounded-xl bg-[#181c24] p-6 text-white shadow-2xl">
             <h2 className="mb-1 text-lg font-semibold">Buy Plan</h2>
             <p className="mb-4 text-sm text-gray-400">{selectedMember.name}</p>
+            {dueAmount !== null && dueAmount !== undefined && String(dueAmount) !== "" && (
+              <p className="mb-3 text-sm font-medium text-amber-300">Amount due: Rs {dueAmount}</p>
+            )}
 
             <div className="mb-3">
               <select
@@ -285,7 +340,7 @@ export default function Members() {
             {formError && <div className="mb-3 text-xs text-red-400">{formError}</div>}
 
             <div className="flex justify-end gap-2">
-              <button className="rounded bg-gray-700 px-3 py-2 text-white" onClick={() => setSelectedMember(null)}>Cancel</button>
+              <button className="rounded bg-gray-700 px-3 py-2 text-white" onClick={() => { setSelectedMember(null); setDueAmount(null); }}>Cancel</button>
               <button className="btn-primary disabled:opacity-50" disabled={isSavingPlan} onClick={assignPlan}>
                 {isSavingPlan ? "Saving..." : "Assign Plan"}
               </button>
