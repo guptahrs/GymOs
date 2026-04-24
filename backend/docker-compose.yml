@@ -19,8 +19,8 @@ services:
     container_name: gym_db
     restart: always
     environment:
-      POSTGRES_DB: gym_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gym_db_s4x3
+      POSTGRES_USER: gym_db_s4x3_user
+      POSTGRES_PASSWORD: 63f4m61gGECqkvo9MtGOx1LljpJ3zPFF
     ports:
       - "5432:5432"
