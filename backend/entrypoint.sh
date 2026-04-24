@@ -11,8 +11,11 @@ echo "Waiting for PostgreSQL..."
 # 🔥 now run migrations
 python manage.py migrate
 
+# 👇 ADD THIS
+python manage.py create_superadmin
+
 python manage.py collectstatic --noinput
 
 # start server
-exec python manage.py runserver 0.0.0.0:8000
+# exec python manage.py runserver 0.0.0.0:8000
 exec python manage.py runserver 0.0.0.0:10000
