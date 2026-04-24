@@ -53,7 +53,7 @@ export default function Dashboard() {
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition" onClick={() => navigate("/leads/create")}>Genrate Leads</button>
         <button className="bg-primary text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-primary/80 transition" onClick={() => {navigate("/members/add");}}>Add Member</button>
         <button className="bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-pink-700 transition" onClick={() => navigate("/staff/add")}>Add Staff</button>
-        <button className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-yellow-600 transition" onClick={() => navigate("/trainer/add")}>Add trainer</button>
+        <button className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-yellow-600 transition" onClick={() => navigate("/trainer")}>Add trainer</button>
         <button className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-purple-700 transition" onClick={() => navigate("/plan/add")}>Add Plan</button>
         {/* <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition" onClick={() => navigate("/invoice/create")}>Create Invoice</button> */}
         <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-green-700 transition" onClick={() => navigate("/payment/record")}>Record Payment</button>

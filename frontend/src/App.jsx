@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/dashboard";
 import AddStaff from "./pages/AddStaff";
 import AddTrainer from "./pages/AddTrainer";
+import Trainers from "./pages/Trainers";
 import AddPlan from "./pages/AddPlan";
 import Plans from "./pages/Plans";
 import CreateInvoice from "./pages/CreateInvoice";
@@ -40,6 +41,11 @@ export default function App() {
           <Route path="/trainer/add" element={
             <ProtectedRoute>
               <AddTrainer />
+            </ProtectedRoute>
+          } />
+          <Route path="/trainer" element={
+            <ProtectedRoute>
+              <Trainers />
             </ProtectedRoute>
           } />
           <Route path="/plan/add" element={

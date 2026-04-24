@@ -27,6 +27,7 @@ export default function Sidebar({ collapsed = false }) {
     { name: "Members", path: "/members", icon: Users },
     { name: "Membership Plans", path: "/plans", icon: BadgeCheck },
     { name: "Staff", path: "/staff", icon: UserCog },
+    { name: "Trainer", path: "/trainer", icon: Dumbbell },
     { name: "Expenses", path: "/expenses", icon: BanknoteArrowDown },
   ];
 
