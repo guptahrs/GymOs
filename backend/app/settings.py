@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-
+print("DATABASE_URL checking on render:", DATABASE_URL)
 if DATABASE_URL:
     # Production (Render)
     print("Using DATABASE_URL for production", DATABASE_URL)
