@@ -37,7 +37,7 @@ export default function GymOwnerAddForm() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const res = await addOwner.mutateAsync({ gym_id: gymId, owner: form });
+      const res = await addOwner({ gym_id: gymId, owner: form });
       showSnackbar(res.message || "Owner added successfully", "success");
       setForm({ email: "", password: "", first_name: "", last_name: "" });
     } catch (e) {

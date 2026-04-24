@@ -62,7 +62,7 @@ export default function GymAddForm() {
   const handleBasic = async () => {
     if (!validateBasic()) return;
     try {
-      const res = await createGym.mutateAsync(form);
+      const res = await createGym(form);
       setGymId(res.data.gym_id);
       setStep(2);
       showSnackbar(res.message || "Gym basic details saved", "success");
@@ -76,7 +76,7 @@ export default function GymAddForm() {
   const handleAddress = async () => {
     if (!validateAddress()) return;
     try {
-      const res = await addAddress.mutateAsync({ gym_id: gymId, ...address });
+      const res = await addAddress({ gym_id: gymId, ...address });
       showSnackbar(res.message || "Gym address added successfully 🚀", "success");
     } catch (e) {
       const msg = e.response?.data?.message || e.message || "Failed to add address";
