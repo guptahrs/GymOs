@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     }
 
     if (user_type === "gym_owner") {
-      return <Navigate to="/gym-admin" replace />;
+      return <Navigate to="/" replace />;
     }
 
     return <Navigate to="/login" replace />;

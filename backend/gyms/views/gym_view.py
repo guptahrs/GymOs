@@ -9,10 +9,12 @@ from gyms.models import Gym
 from common.utills.user_type_utils import is_super_user
 from accounts.models import User
 from common.constants.enums import UserType
+from common.permissions.super_admin_permission import IsSuperAdmin
 
 
 class CreateGymBasicView(GenericAPIView):
     serializer_class = GymCreateSerializer
+    permission_classes = [IsSuperAdmin]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -27,7 +29,7 @@ class CreateGymBasicView(GenericAPIView):
     
 
 class AddGymAddressView(GenericAPIView):
-
+    permission_classes = [IsSuperAdmin]
     def post(self, request):
         gym_id = request.data.get("gym_id")
 
@@ -44,6 +46,8 @@ class AddGymAddressView(GenericAPIView):
 
 # API to add a gym owner (admin) to a gym
 class AddGymOwnerView(GenericAPIView):
+    permission_classes = [IsSuperAdmin]
+    
     def post(self, request):
         #TODO later we will check only super admin can add gym owner to a gym
         
@@ -67,6 +71,8 @@ class AddGymOwnerView(GenericAPIView):
 
 
 class GymListView(GenericAPIView):
+    permission_classes = [IsSuperAdmin]
+    
     serializer_class = GymListSerializer
 
     def get(self, request):

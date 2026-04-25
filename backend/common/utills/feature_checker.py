@@ -4,7 +4,7 @@ from subscriptions.models import Subscription, PlanFeatureMapping
 def has_feature(gym_id, feature_code):
     subscription = Subscription.objects.filter(
         gym_id=gym_id,
-        is_active=True
+        status="active"         # matches your SubscriptionStatus.ACTIVE = "active"
     ).first()
 
     if not subscription:

@@ -5,10 +5,12 @@ from accounts.models import User
 from common.responses.api_response import APIResponse
 from common.constants.enums import UserType
 from accounts.serializers.auth_serializer import CreateAdminSerializer
+from common.permissions.super_admin_permission import IsSuperAdmin
 
 
 class CreateAdminUserView(GenericAPIView):
-    serializer_class = CreateAdminSerializer  # 🔥 THIS IS IMPORTANT
+    serializer_class = CreateAdminSerializer
+    permission_classes = [IsSuperAdmin]
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)

@@ -6,7 +6,7 @@ from django.db import models
 
 from common.models import BaseModel
 from common.constants.enums import UserType, Gender
-
+from accounts.models.access_control_model import Role
 
 class User(BaseModel):
 
@@ -22,6 +22,8 @@ class User(BaseModel):
     gender = models.CharField(max_length=10, choices=Gender.choices(), null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     gym_id = models.UUIDField(null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
+    is_super_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

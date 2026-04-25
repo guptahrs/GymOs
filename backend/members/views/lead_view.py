@@ -11,11 +11,15 @@ from members.models import Member, MembershipPlan, MemberSubscription
 from common.services.address_service import create_address
 from common.responses.api_response import APIResponse
 from common.constants.enums import UserType, OnboardingStep, PaymentStatus
+from common.permissions.feature_rbac_permission import FeatureAndRBACPermission
 
 
 class LeadListCreateView(GenericAPIView):
 	"""Create and list leads using the existing `User` model with `user_type=LEAD`."""
+	permission_classes = [FeatureAndRBACPermission]
+	feature = "leads"
 
+ 
 	def get(self, request):
 		users = User.objects.filter(user_type=UserType.LEAD, is_deleted=False).order_by("-created_at")
 		data = []

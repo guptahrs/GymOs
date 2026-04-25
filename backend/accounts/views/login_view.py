@@ -40,6 +40,8 @@ class LoginView(GenericAPIView):
             "email": user.email,
             "user_type": user.user_type,
             "gym_id": str(user.gym_id) if user.gym_id else None,
+            "role_id": user.role_id if user.role else None,
+            "is_super_admin": user.is_super_admin,  
             "exp": int((timezone.now() + timedelta(minutes=60)).timestamp()),
         }
 
