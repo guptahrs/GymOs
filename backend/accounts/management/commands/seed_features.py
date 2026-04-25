@@ -1,23 +1,23 @@
 from django.core.management.base import BaseCommand
 from subscriptions.models import Plan, PlanFeature, PlanFeatureMapping
 from accounts.models import Feature
+from common.constants.enums import FeatureCode, PlanName
 
 
 FEATURES = [
-    ("members",   "Members Management"),
-    ("staff",     "Staff Management"),
-    ("dashboard", "Dashboard"),
-    ("leads",     "Leads / Visitors"),
-    ("expenses",  "Expenses"),
-    ("trainers",  "Trainers"),
-    ("whatsapp",  "WhatsApp Notifications"),
+    (FeatureCode.MEMBERS,   FeatureCode.MEMBERS.label),
+    (FeatureCode.STAFF,     FeatureCode.STAFF.label),
+    (FeatureCode.DASHBOARD, FeatureCode.DASHBOARD.label),
+    (FeatureCode.LEADS,     FeatureCode.LEADS.label),
+    (FeatureCode.EXPENSES,  FeatureCode.EXPENSES.label),
+    (FeatureCode.TRAINERS,  FeatureCode.TRAINERS.label),
+    (FeatureCode.WHATSAPP,  FeatureCode.WHATSAPP.label),
 ]
 
 PLAN_FEATURES = {
-    "Basic": ["members", "staff", "dashboard"],
-    "Pro":   ["members", "staff", "dashboard", "leads", "expenses", "trainers"],
-    "Enterprise": ["members", "staff", "dashboard", "leads", "expenses", "trainers", "whatsapp"],
-}
+    PlanName.STANDARD: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD],
+    PlanName.ELITE:    [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES],
+    PlanName.PREMIUM_PLUS: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES, FeatureCode.TRAINERS, FeatureCode.WHATSAPP],}
 
 
 class Command(BaseCommand):
@@ -32,12 +32,12 @@ class Command(BaseCommand):
         self.stdout.write("Features created.")
 
         # 2. Create plans if not exist
-        basic, _      = Plan.objects.get_or_create(name="Basic",      defaults={"price": 999,  "duration_days": 30})
-        pro, _        = Plan.objects.get_or_create(name="Pro",        defaults={"price": 2499, "duration_days": 30})
-        enterprise, _ = Plan.objects.get_or_create(name="Enterprise", defaults={"price": 4999, "duration_days": 30})
+        basic, _      = Plan.objects.get_or_create(name=PlanName.STANDARD,      defaults={"price": PlanName.STANDARD.price,  "duration_days": PlanName.STANDARD.duration_days})
+        pro, _        = Plan.objects.get_or_create(name=PlanName.ELITE,        defaults={"price": PlanName.ELITE.price, "duration_days": PlanName.ELITE.duration_days})
+        enterprise, _ = Plan.objects.get_or_create(name=PlanName.PREMIUM_PLUS, defaults={"price": PlanName.PREMIUM_PLUS.price, "duration_days": PlanName.PREMIUM_PLUS.duration_days})
         self.stdout.write("Plans created.")
 
-        plan_map = {"Basic": basic, "Pro": pro, "Enterprise": enterprise}
+        plan_map = {PlanName.STANDARD: basic, PlanName.ELITE: pro, PlanName.PREMIUM_PLUS: enterprise}
 
         # 3. Create PlanFeatureMapping rows
         for plan_name, feature_codes in PLAN_FEATURES.items():

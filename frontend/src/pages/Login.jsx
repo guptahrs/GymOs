@@ -29,7 +29,7 @@ export default function Login() {
       console.log("....Logged in user type...:", user_type);
       if (user_type === 'super_admin') navigate('/super-admin');
       else
-        if (user_type === 'gym_owner') navigate('/gym-admin'); 
+        if (user_type === 'gym_owner') navigate('/'); 
         else navigate('/');
     },
     onError: (err) => {

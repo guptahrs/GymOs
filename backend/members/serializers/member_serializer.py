@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from accounts.models import User
 from members.models import Member
-from common.constants.enums import UserType
+from common.constants.enums import PaymentStatus
 
 
 class MemberCreateSerializer(serializers.Serializer):
@@ -62,11 +62,13 @@ class MemberSerializer(serializers.ModelSerializer):
         return obj.user.date_of_birth
 
     def get_status(self, obj):
-        payment_status = str(obj.payment_status).lower()
-        if payment_status == "due":
-            return "Payment Due"
-        if payment_status == "partial":
-            return "Partial Payment"
         if obj.onboarding_step == "completed":
             return "Active"
         return "Incomplete"
+
+    def get_payment_status(self, obj):
+        payment_status = str(obj.payment_status).lower()
+        if payment_status == PaymentStatus.DUE:
+            return "Payment Due"
+        if payment_status == PaymentStatus.PARTIAL:
+            return "Partial Payment"

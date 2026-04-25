@@ -1,12 +1,13 @@
 import uuid
 from django.db import models
 from common.models import BaseModel
+from common.constants.enums import FeatureCode
 
 
 class PlanFeature(BaseModel):
     feature_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    code = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=100, unique=True, choices=FeatureCode.choices)
     name = models.CharField(max_length=100)
 
     def __str__(self):
