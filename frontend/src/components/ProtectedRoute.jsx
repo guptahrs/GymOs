@@ -2,19 +2,31 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isAuthenticated } from "../utils/auth";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const location = useLocation();
-  const user_type = JSON.parse(localStorage.getItem("user"))?.user_type || null;
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const user_type = user?.user_type;
+
+  // 🔒 Not logged in
   if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  else
-    if (user_type === 'super_admin' && !location.pathname.startsWith('/super-admin')) {
+
+  // 🔥 ROLE CHECK (IMPORTANT)
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user_type)) {
+    
+    // redirect based on role
+    if (user_type === "super_admin") {
       return <Navigate to="/super-admin" replace />;
     }
-    else if (user_type === 'gym_owner' && !location.pathname.startsWith('/gym-admin')) {
+
+    if (user_type === "gym_owner") {
       return <Navigate to="/gym-admin" replace />;
     }
-      else
-        return children;
+
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }

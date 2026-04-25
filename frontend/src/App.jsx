@@ -29,82 +29,82 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/staff" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddStaff />
             </ProtectedRoute>
           } />
           <Route path="/staff/add" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddStaff />
             </ProtectedRoute>
           } />
           <Route path="/trainer/add" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddTrainer />
             </ProtectedRoute>
           } />
           <Route path="/trainer" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <Trainers />
             </ProtectedRoute>
           } />
           <Route path="/plan/add" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddPlan />
             </ProtectedRoute>
           } />
           <Route path="/plans" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <Plans />
             </ProtectedRoute>
           } />
           <Route path="/invoice/create" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <CreateInvoice />
             </ProtectedRoute>
           } />
           <Route path="/payment/record" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <RecordPayment />
             </ProtectedRoute>
           } />
           <Route path="/attendance/view" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <ViewAttendance />
             </ProtectedRoute>
           } />
           <Route path="/" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <Dashboard />
             </ProtectedRoute>
           } />
           <Route path="/members" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <Members />
             </ProtectedRoute>
           } />
           <Route path="/members/add" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddMember />
             </ProtectedRoute>
           } />
           <Route path="/super-admin" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["super_admin"]}>
               <SuperAdminDashboard />
             </ProtectedRoute>
           } />
           <Route path="/super-admin/gyms" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["super_admin"]}>
               <SuperAdminGyms />
             </ProtectedRoute>
           } />
           <Route path="/gyms/add" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["super_admin"]}>
               <GymAddForm />
             </ProtectedRoute>
           } />
           <Route path="/gyms/:gymId/add-owner" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["super_admin"]}>
               <GymOwnerAddForm />
             </ProtectedRoute>
           } />
