@@ -28,6 +28,7 @@ export function logout() {
     localStorage.removeItem("gym_id");
     localStorage.removeItem("user");
   } catch (e) {
+    console.error("Error during logout:", e);
     // ignore
   }
 }

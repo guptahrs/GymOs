@@ -1,0 +1,100 @@
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 80px;
+  background: url("https://images.unsplash.com/photo-1558611848-73f7eb4001ab")
+    no-repeat center/cover;
+  position: relative;
+}
+
+/* dark overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+}
+
+.login-left {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.login-left h1 {
+  font-size: 64px;
+  font-weight: 700;
+}
+
+.login-left p {
+  opacity: 0.7;
+  font-size: 20px;
+}
+
+/* Glass card */
+.login-card {
+  position: relative;
+  z-index: 2;
+  width: 380px;
+  padding: 40px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  color: white;
+
+  animation: fadeIn 0.8s ease;
+}
+
+.login-card h2 {
+  margin-bottom: 20px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.login-card input:focus {
+  outline: none;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* Button glow */
+.login-card button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-card button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px #22c55e;
+}
+
+.footer-text {
+  display: block;
+  margin-top: 15px;
+  font-size: 12px;
+  opacity: 0.6;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
