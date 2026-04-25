@@ -32,9 +32,9 @@ class Command(BaseCommand):
         self.stdout.write("Features created.")
 
         # 2. Create plans if not exist
-        basic, _      = Plan.objects.get_or_create(name=PlanName.STANDARD,      defaults={"price": PlanName.STANDARD.price,  "duration_days": PlanName.STANDARD.duration_days})
-        pro, _        = Plan.objects.get_or_create(name=PlanName.ELITE,        defaults={"price": PlanName.ELITE.price, "duration_days": PlanName.ELITE.duration_days})
-        enterprise, _ = Plan.objects.get_or_create(name=PlanName.PREMIUM_PLUS, defaults={"price": PlanName.PREMIUM_PLUS.price, "duration_days": PlanName.PREMIUM_PLUS.duration_days})
+        basic, _      = Plan.objects.get_or_create(name=PlanName.STANDARD,      defaults={"price": PlanName.STANDARD.price,  "duration_days": PlanName.STANDARD.duration_days, "badge_color": "#22c55e"})
+        pro, _        = Plan.objects.get_or_create(name=PlanName.ELITE,        defaults={"price": PlanName.ELITE.price, "duration_days": PlanName.ELITE.duration_days, "badge_color": "#a855f7"})
+        enterprise, _ = Plan.objects.get_or_create(name=PlanName.PREMIUM_PLUS, defaults={"price": PlanName.PREMIUM_PLUS.price, "duration_days": PlanName.PREMIUM_PLUS.duration_days, "badge_color": "#3b82f6"})
         self.stdout.write("Plans created.")
 
         plan_map = {PlanName.STANDARD: basic, PlanName.ELITE: pro, PlanName.PREMIUM_PLUS: enterprise}

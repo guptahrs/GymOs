@@ -1,12 +1,30 @@
 from rest_framework import serializers
 from accounts.models import Feature, Role, Permission
+from subscriptions.models.plan_feature_model import PlanFeatureMapping
 from common.utills.feature_checker import has_feature
 
 
 class FeatureSerializer(serializers.ModelSerializer):
+    plans = serializers.SerializerMethodField()
     class Meta:
         model = Feature
-        fields = ["id", "name", "code"]
+        fields = ["id", "name", "code", "plans"]
+    
+    def get_plans(self, obj):
+        # PlanFeatureMapping links to PlanFeature via feature__code
+        # We match by code since both models share the same code value
+        mappings = PlanFeatureMapping.objects.filter(
+            feature__code=obj.code
+        ).select_related("plan")
+
+        return [
+            {
+                "id": str(mapping.plan.plan_id),
+                "name": mapping.plan.name,
+                "badge_color": getattr(mapping.plan, "badge_color", "#3b82f6"),
+            }
+            for mapping in mappings
+        ]
 
 
 class PermissionWriteSerializer(serializers.ModelSerializer):

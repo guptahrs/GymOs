@@ -13,6 +13,8 @@ class Plan(BaseModel):
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     duration_days = models.IntegerField()  # 30, 365
+    
+    badge_color = models.CharField(max_length=20, default="#4CAF50")
 
 
     def __str__(self):

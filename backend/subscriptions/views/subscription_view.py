@@ -2,6 +2,7 @@ from rest_framework.generics import GenericAPIView
 from django.utils import timezone
 from datetime import timedelta
 
+from common.permissions.super_admin_permission import IsSuperAdmin
 from subscriptions.models import Subscription, Plan
 from gyms.models import Gym
 from subscriptions.serializers.subscription_serializer import SubscriptionSerializer
@@ -11,6 +12,7 @@ from common.constants.enums import OnboardingStep
 
 class CreateSubscriptionView(GenericAPIView):
     serializer_class = SubscriptionSerializer
+    permission_classes = [IsSuperAdmin]
 
     def post(self, request):
         gym_id = request.data.get("gym_id")
@@ -42,6 +44,7 @@ class CreateSubscriptionView(GenericAPIView):
 
 
 class GetActiveSubscriptionView(GenericAPIView):
+    permission_classes = [IsSuperAdmin]
 
     def get(self, request):
         gym_id = request.query_params.get("gym_id")

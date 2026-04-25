@@ -15,6 +15,9 @@ import Members from "./pages/Members";
 import AddMember from "./pages/AddMember";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminGyms from "./pages/SuperAdminGyms";
+import SuperAdminPlans from "./pages/SuperAdminPlans";
+import SuperAdminFeatures from "./pages/SuperAdminFeatures";
+import SuperAdminSubscriptions from "./pages/SuperAdminSubscriptions";
 // Placeholders for forms
 import GymAddForm from "./pages/GymAddForm";
 import GymOwnerAddForm from "./pages/GymOwnerAddForm";
@@ -96,6 +99,21 @@ export default function App() {
           <Route path="/super-admin/gyms" element={
             <ProtectedRoute allowedRoles={["super_admin"]}>
               <SuperAdminGyms />
+            </ProtectedRoute>
+          } />
+          <Route path="/super-admin/plans" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminPlans />
+            </ProtectedRoute>
+          } />
+          <Route path="/super-admin/features" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminFeatures />
+            </ProtectedRoute>
+          } />
+          <Route path="/super-admin/subscriptions" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminSubscriptions />
             </ProtectedRoute>
           } />
           <Route path="/gyms/add" element={
