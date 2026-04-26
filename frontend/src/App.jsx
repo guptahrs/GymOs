@@ -24,6 +24,7 @@ import GymOwnerAddForm from "./pages/GymOwnerAddForm";
 import Leads from "./pages/Leads";
 import Expenses from "./pages/Expenses";
 import Settings from "./pages/Settings";
+import ComingSoon from "./pages/CommingSoon";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
       <SnackbarProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ComingSoon/>}/>
           <Route path="/staff" element={
             <ProtectedRoute allowedRoles={["gym_owner"]}>
               <AddStaff />
@@ -76,7 +78,7 @@ export default function App() {
               <ViewAttendance />
             </ProtectedRoute>
           } />
-          <Route path="/" element={
+          <Route path="/dashboard" element={
             <ProtectedRoute allowedRoles={["gym_owner"]}>
               <Dashboard />
             </ProtectedRoute>

@@ -3,10 +3,10 @@ import { useLocation } from "react-router-dom";
 import HeaderActions from "./HeaderActions";
 
 function humanizePath(path) {
-  if (!path || path === "/") return "Dashboard";
+  if (!path || path === "/dashboard") return "Dashboard";
   if (path === "/super-admin") return "Dashboard";
   if (path === "/plans") return "Membership Plans";
-  const parts = path.split("/").filter(Boolean);
+  const parts = path.split("/dashboard").filter(Boolean);
   const last = parts[parts.length - 1];
   // replace dashes with spaces and capitalize
   return last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -15,7 +15,7 @@ function humanizePath(path) {
 export default function TopHeader({ title }) {
   const location = useLocation();
   const path = location.pathname;
-  const showBack = !(path === "/" || path === "/super-admin");
+  const showBack = !(path === "/dashboard" || path === "/super-admin");
   const derivedTitle = title || humanizePath(path);
 
   return (

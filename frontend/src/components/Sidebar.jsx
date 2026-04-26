@@ -22,7 +22,7 @@ export default function Sidebar({ collapsed = false }) {
   const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith("/settings"));
 
   const menu = [
-    { name: "Dashboard", path: "/", icon: LayoutDashboard },
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "Leads", path: "/leads", icon: UserPlus },
     { name: "Members", path: "/members", icon: Users },
     { name: "Membership Plans", path: "/plans", icon: BadgeCheck },
