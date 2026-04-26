@@ -213,6 +213,10 @@ export default function ComingSoon() {
             )}
 
             {/* Bottom row */}
+            <p className="text-xs text-[#555] leading-relaxed mt-6 max-w-xs">
+                {/* Built from scratch with passion by the founder.<br/> */}
+                Want early access or partnership? Let’s connect on harsh.gupta@gymora.co.in / support@gymora.co.in
+            </p>
             <div className="mt-7 flex items-center justify-between">
               <div className="flex gap-3">
                 {[
