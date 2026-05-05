@@ -2,20 +2,26 @@ from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
+from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 
 from accounts.models import User
 from common.services.address_service import create_address
-from members.models import Member
+from members.models import Member, MemberSubscription
 from members.serializers.member_serializer import MemberCreateSerializer, MemberSerializer
 from common.responses.api_response import APIResponse
 from common.constants.enums import UserType, OnboardingStep
+from common.utills.subscription_guard import ensure_gym_write_access
 
 
 class CreateMemberBasicView(GenericAPIView):
     serializer_class = MemberCreateSerializer
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         data = request.data
         data["password"] = data.get("password", "defaultpassword123")  # Set default password if not provided
         serializer = self.get_serializer(data=request.data)
@@ -48,6 +54,10 @@ class CreateMemberBasicView(GenericAPIView):
 class AddMemberAddressView(GenericAPIView):
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         member_id = request.data.get("user_id")
 
         member = Member.objects.get(user_id=member_id)
@@ -100,7 +110,15 @@ class MemberListView(ListAPIView):
                 gym_id=user.get("gym_id"),
                 is_deleted=False,
                 user__is_deleted=False,
-            ).select_related("user", "address")
+            ).select_related("user", "address").prefetch_related(
+                Prefetch(
+                    "membersubscription_set",
+                    queryset=MemberSubscription.objects.filter(is_deleted=False)
+                    .select_related("plan")
+                    .order_by("-created_at"),
+                    to_attr="prefetched_subscriptions",
+                )
+            )
         except Exception as e:
             print(f"Error fetching members: {e}")
             return Member.objects.none()
@@ -128,6 +146,9 @@ class MemberDetailView(GenericAPIView):
         member = self.get_object(request, member_id)
         if not member:
             return APIResponse.error("Member not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, member.gym_id_id)
+        if access_error:
+            return access_error
 
         data = request.data
         user = member.user
@@ -157,6 +178,9 @@ class MemberDetailView(GenericAPIView):
         member = self.get_object(request, member_id)
         if not member:
             return APIResponse.error("Member not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, member.gym_id_id)
+        if access_error:
+            return access_error
 
         member.is_active = False
         member.is_deleted = True

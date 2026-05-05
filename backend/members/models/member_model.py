@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from common.models import BaseModel, Address
-from common.constants.enums import Gender, OnboardingStep, PaymentStatus
+from common.constants.enums import Gender, OnboardingStep, PaymentStatus, SubscriptionStatus, PaymentMode
 
 
 class Member(BaseModel):
@@ -57,6 +57,7 @@ class MemberSubscription(BaseModel):
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     remaining_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     estimated_remaining_payment_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20,choices=SubscriptionStatus.choices(),default=SubscriptionStatus.ACTIVE)
 
     def __str__(self):
         return str(self.subscription_id)
@@ -70,7 +71,7 @@ class MemberPayment(BaseModel):
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
-    payment_mode = models.CharField(max_length=20)  # cash / upi / card
+    payment_mode = models.CharField(max_length=20, choices=PaymentMode.choices())  # cash / upi / card
 
     payment_date = models.DateTimeField(auto_now_add=True)
 

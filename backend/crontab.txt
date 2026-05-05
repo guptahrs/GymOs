@@ -1,0 +1,4 @@
+# Run Gymora scheduler every day at midnight
+0 0 * * * /usr/local/bin/python /app/manage.py run_scheduler >> /var/log/gymora_scheduler.log 2>&1
+
+# Keep this empty line at end — cron requires it

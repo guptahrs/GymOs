@@ -1,6 +1,6 @@
 export default function DataTable({ columns, data, entity}) {
   return (
-    <div className="bg-card rounded-2xl border border-gray-800 overflow-hidden">
+    <div className="overflow-x-auto overflow-y-visible rounded-2xl border border-gray-800 bg-card">
 
       <table className="w-full text-sm text-left text-gray-300">
 

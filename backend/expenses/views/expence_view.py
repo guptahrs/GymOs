@@ -4,11 +4,16 @@ from rest_framework import status
 from expenses.models import Expense
 from expenses.serializers.expense_serializer import ExpenseSerializer
 from common.responses.api_response import APIResponse
+from common.utills.subscription_guard import ensure_gym_write_access
 
 
 class CreateExpenseView(APIView):
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         user = getattr(request, "user_claims", None)
         if not user:
             return APIResponse.error(
@@ -56,6 +61,10 @@ class UpdateExpenseView(APIView):
 
     def put(self, request, pk):
         try:
+            access_error = ensure_gym_write_access(request)
+            if access_error:
+                return access_error
+
             user = getattr(request, "user_claims", None)
             if not user:
                 return APIResponse.error(
@@ -81,6 +90,10 @@ class DeleteExpenseView(APIView):
 
     def delete(self, request, pk):
         try:
+            access_error = ensure_gym_write_access(request)
+            if access_error:
+                return access_error
+
             user = getattr(request, "user_claims", None)
             if not user:
                 return APIResponse.error(

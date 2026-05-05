@@ -33,6 +33,9 @@ urlpatterns = [
     #subscriptions app urls
     path("api/subscriptions/", include("subscriptions.urls")),
 
+    #common app urls
+    path("api/common/", include("common.urls")),
+    
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
 
     # Swagger UI

@@ -22,7 +22,6 @@ class Gym(BaseModel):
 
    # 🔥 relation
     address = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
-    
 
     def __str__(self):
         return self.name

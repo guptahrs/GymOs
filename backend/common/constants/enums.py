@@ -44,6 +44,11 @@ class SubscriptionStatus(BaseEnum):
     EXPIRED = "expired"
     CANCELLED = "cancelled"
 
+
+class SubscriptionAccessType(BaseEnum):
+    PAID = "paid"
+    TRIAL = "trial"
+
 class Gender(BaseEnum):
     MALE = "male"
     FEMALE = "female"
@@ -81,3 +86,8 @@ class ShiftChoices(BaseEnum):
     MORNING = "MORNING"
     EVENING = "EVENING"
     BOTH = "BOTH"
+
+class PaymentMode(BaseEnum):
+    CASH = "CASH"
+    CARD = "CARD"
+    UPI = "UPI"

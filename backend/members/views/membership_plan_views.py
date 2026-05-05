@@ -5,6 +5,7 @@ from rest_framework import status
 from members.models import MembershipPlan, MemberSubscription
 from members.serializers.plan_serializer import MembershipPlanSerializer
 from common.responses.api_response import APIResponse
+from common.utills.subscription_guard import ensure_gym_write_access
 
 
 class MembershipPlanListCreateView(GenericAPIView):
@@ -22,6 +23,10 @@ class MembershipPlanListCreateView(GenericAPIView):
             return APIResponse.error("Failed to fetch plans", errors=str(e))
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         try:
             user = getattr(request, "user_claims", None)
             gym_id = user.get("gym_id") if user else None
@@ -59,6 +64,9 @@ class MembershipPlanDetailView(GenericAPIView):
         plan = self.get_object(plan_id)
         if not plan:
             return APIResponse.error("Plan not found", status=404)
+        access_error = ensure_gym_write_access(request, plan.gym_id_id)
+        if access_error:
+            return access_error
 
         serializer = self.get_serializer(plan, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -69,6 +77,9 @@ class MembershipPlanDetailView(GenericAPIView):
         plan = MembershipPlan.objects.filter(plan_id=plan_id).first()
         if not plan:
             return APIResponse.error("Plan not found", status=404)
+        access_error = ensure_gym_write_access(request, plan.gym_id_id)
+        if access_error:
+            return access_error
 
         # check if assigned
         assigned = MemberSubscription.objects.filter(plan=plan, is_deleted=False).exists()

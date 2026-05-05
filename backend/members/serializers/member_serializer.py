@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User
 from members.models import Member
-from common.constants.enums import PaymentStatus
 
 
 class MemberCreateSerializer(serializers.Serializer):
@@ -23,6 +21,10 @@ class MemberSerializer(serializers.ModelSerializer):
     gender = serializers.SerializerMethodField()
     dob = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    current_plan_name = serializers.SerializerMethodField()
+    plan_valid_till = serializers.SerializerMethodField()
+    remaining_amount = serializers.SerializerMethodField()
+    estimated_due_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Member
@@ -37,7 +39,11 @@ class MemberSerializer(serializers.ModelSerializer):
             "dob",
             "status",
             "payment_status",
-            "created_at"
+            "current_plan_name",
+            "plan_valid_till",
+            "remaining_amount",
+            "estimated_due_date",
+            "created_at",
         ]
 
     def get_name(self, obj):
@@ -66,9 +72,36 @@ class MemberSerializer(serializers.ModelSerializer):
             return "Active"
         return "Incomplete"
 
-    def get_payment_status(self, obj):
-        payment_status = str(obj.payment_status).lower()
-        if payment_status == PaymentStatus.DUE:
-            return "Payment Due"
-        if payment_status == PaymentStatus.PARTIAL:
-            return "Partial Payment"
+    def _get_latest_subscription(self, obj):
+        subscriptions = getattr(obj, "prefetched_subscriptions", None)
+        if subscriptions is not None:
+            return subscriptions[0] if subscriptions else None
+
+        return (
+            obj.membersubscription_set.select_related("plan")
+            .filter(is_deleted=False)
+            .order_by("-created_at")
+            .first()
+        )
+
+    def get_current_plan_name(self, obj):
+        subscription = self._get_latest_subscription(obj)
+        return subscription.plan.name if subscription and subscription.plan else None
+
+    def get_plan_valid_till(self, obj):
+        subscription = self._get_latest_subscription(obj)
+        return subscription.end_date.date() if subscription and subscription.end_date else None
+
+    def get_remaining_amount(self, obj):
+        subscription = self._get_latest_subscription(obj)
+        if not subscription or subscription.remaining_amount is None:
+            return None
+        return str(subscription.remaining_amount)
+
+    def get_estimated_due_date(self, obj):
+        subscription = self._get_latest_subscription(obj)
+        return (
+            subscription.estimated_remaining_payment_date
+            if subscription and subscription.estimated_remaining_payment_date
+            else None
+        )

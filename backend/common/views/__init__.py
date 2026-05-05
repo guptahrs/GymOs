@@ -1,0 +1,1 @@
+from .static_lookup import StaticLookupView

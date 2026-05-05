@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework.generics import GenericAPIView
 
-from gyms.serializers.gym_serializer import GymCreateSerializer, GymListSerializer
+from gyms.serializers.gym_serializer import GymCreateSerializer, GymListSerializer, GymDetailSerializer
 from common.responses.api_response import APIResponse
 from common.constants.enums import OnboardingStep
 from common.services.address_service import create_address
@@ -10,6 +10,7 @@ from common.utills.user_type_utils import is_super_user
 from accounts.models import User
 from common.constants.enums import UserType
 from common.permissions.super_admin_permission import IsSuperAdmin
+from common.permissions.gym_owner_permission import IsGymOwner
 
 
 class CreateGymBasicView(GenericAPIView):
@@ -77,5 +78,19 @@ class GymListView(GenericAPIView):
 
     def get(self, request):
         gyms = Gym.objects.all()
+        
         serializer = self.get_serializer(gyms, many=True)
+        return APIResponse.success(data=serializer.data)
+
+
+class GymDetailView(GenericAPIView):
+    permission_classes = [IsGymOwner | IsSuperAdmin]
+    
+    def get(self, request, gym_id):
+        try:
+            gym = Gym.objects.get(gym_id=gym_id)
+        except Gym.DoesNotExist:
+            return APIResponse.error("Gym not found", status=404)
+
+        serializer = GymDetailSerializer(gym)
         return APIResponse.success(data=serializer.data)

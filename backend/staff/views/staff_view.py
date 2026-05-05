@@ -5,6 +5,7 @@ from rest_framework.generics import GenericAPIView
 from accounts.models import User
 from common.constants.enums import UserType
 from common.responses.api_response import APIResponse
+from common.utills.subscription_guard import ensure_gym_write_access
 from staff.models import Staff
 from staff.serializers.staff_serializer import StaffCreateSerializer, StaffSerializer
 
@@ -28,6 +29,10 @@ class StaffListCreateView(GenericAPIView):
         return APIResponse.success(data=StaffSerializer(staff, many=True).data)
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         data = request.data.copy()
         user_claims = getattr(request, "user_claims", None)
         if not data.get("gym_id") and user_claims:
@@ -86,6 +91,9 @@ class StaffDetailView(GenericAPIView):
         staff = self.get_object(request, staff_id)
         if not staff:
             return APIResponse.error("Staff not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, staff.gym_id_id)
+        if access_error:
+            return access_error
 
         data = request.data
         user = staff.user
@@ -115,6 +123,9 @@ class StaffDetailView(GenericAPIView):
         staff = self.get_object(request, staff_id)
         if not staff:
             return APIResponse.error("Staff not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, staff.gym_id_id)
+        if access_error:
+            return access_error
 
         staff.is_active = False
         staff.is_deleted = True

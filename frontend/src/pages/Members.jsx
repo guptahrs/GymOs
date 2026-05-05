@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import API from "../api/client";
 import MainLayout from "../layouts/MainLayout";
 import DataTable from "../components/DataTable";
+import MemberDetailsCard from "../components/MemberDetailsCard";
 import { showSnackbar } from "../utils/snackbarService";
 import { BadgeCheck, CreditCard, Edit2, Trash2 } from "lucide-react";
 
@@ -14,7 +15,7 @@ export default function Members() {
   const [count, setCount] = useState(0);
   const [plans, setPlans] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [planForm, setPlanForm] = useState({ plan_id: "", amount_paid: "", remaining_amount: "" });
+  const [planForm, setPlanForm] = useState({ plan_id: "", amount_paid: "", remaining_amount: "", payment_mode: "", estimated_remaining_payment_date: "" });
   const [editingMember, setEditingMember] = useState(null);
   const [editForm, setEditForm] = useState({ first_name: "", last_name: "", email: "", phone: "", gender: "", dob: "" });
   const [deleteMember, setDeleteMember] = useState(null);
@@ -24,6 +25,24 @@ export default function Members() {
   const [isDeletingMember, setIsDeletingMember] = useState(false);
   const [dueAmount, setDueAmount] = useState(null);
   const queryClient = useQueryClient();
+  const [paymentModes, setPaymentModes] = useState([]);
+
+    // Fetch the lookup data
+  const { data: lookupData } = useQuery(
+    ["static_lookups"],
+    async () => {
+      const res = await API.get("/common/lookup/static/");
+      return res.data.data;
+    },
+    { staleTime: Infinity } // These are static enums, fetch once and keep forever
+  );
+
+    // Update paymentModes when data arrives
+  useEffect(() => {
+    if (lookupData?.payment_modes) {
+      setPaymentModes(lookupData.payment_modes);
+    }
+  }, [lookupData]);
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(search), 500);
@@ -48,7 +67,7 @@ export default function Members() {
 
   async function openPlanModal(member) {
     setSelectedMember(member);
-    setPlanForm({ plan_id: "", amount_paid: "", remaining_amount: "" });
+    setPlanForm({ plan_id: "", amount_paid: "", remaining_amount: "", payment_mode: "", estimated_remaining_payment_date: "" });
     setFormError("");
     try {
       const res = await API.get("/members/plans/");
@@ -167,6 +186,14 @@ export default function Members() {
       setFormError("Remaining amount cannot be negative");
       return;
     }
+    if (!planForm.payment_mode) {
+      setFormError("Please Select a payment mode");
+      return;
+    }
+    if (planForm.remaining_amount && !planForm.estimated_remaining_payment_date) {
+      setFormError("Please select an estimated remaining payment date");
+      return;
+    }
 
     try {
       setIsSavingPlan(true);
@@ -175,6 +202,8 @@ export default function Members() {
         plan_id: planForm.plan_id,
         amount_paid: planForm.amount_paid || undefined,
         remaining_amount: planForm.remaining_amount || undefined,
+        payment_mode: planForm.payment_mode,
+        estimated_remaining_payment_date: planForm.estimated_remaining_payment_date || undefined,/*  */
       });
 
       showSnackbar(res.data?.message || "Plan assigned", "success");
@@ -189,9 +218,23 @@ export default function Members() {
   }
 
   const columns = [
-    { header: "Name", accessor: "name" },
+    {
+      header: "Name",
+      accessor: "name",
+      render: (row) => <MemberNameCell row={row} />,
+    },
     { header: "Email", accessor: "email" },
     { header: "Phone", accessor: "phone" },
+    {
+      header: "Due Amount",
+      accessor: "remaining_amount",
+      render: (row) => <DueAmountCell amount={row.remaining_amount} />,
+    },
+    {
+      header: "Due Date",
+      accessor: "estimated_due_date",
+      render: (row) => <DateCell value={row.estimated_due_date} emptyLabel="No due date" />,
+    },
     {
       header: "Status",
       accessor: "status",
@@ -336,6 +379,32 @@ export default function Members() {
               />
               <p className="mt-1 text-xs text-gray-500">Leave empty when full payment is received.</p>
             </div>
+            {/* estimated_remaining_payment_date */}
+            <div className="mb-3">
+              {/* <label className="mb-1 block text-xs text-gray-400">Remaining Payment Date</label> */}
+              <input
+                type="date"
+                value={planForm.estimated_remaining_payment_date}
+                onChange={(e) => setPlanForm({ ...planForm, estimated_remaining_payment_date: e.target.value })}
+                className="w-full rounded border border-gray-700 bg-card p-2 text-white outline-none focus:ring-1 focus:ring-primary"
+              />
+              <p className="mt-1 text-xs text-gray-500">When is the balance due?</p>
+            </div>
+            <div className="mb-3">
+              <select
+                value={planForm.payment_mode}
+                onChange={(e) => setPlanForm({ ...planForm, payment_mode: e.target.value })}
+                className="w-full rounded border border-gray-700 bg-card p-2 text-white"
+              >
+                {/* {console.log(paymentModes, )} */}
+                <option value="">Select payment mode</option>
+                {paymentModes.map((mode) => (
+                <option key={mode} value={mode}>
+                    {mode.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {formError && <div className="mb-3 text-xs text-red-400">{formError}</div>}
 
@@ -419,6 +488,61 @@ function MemberInput({ type = "text", label, value, onChange }) {
       />
     </div>
   );
+}
+
+function MemberNameCell({ row }) {
+  return (
+    <MemberDetailsCard
+      member={row}
+      trigger={
+        <div className="flex cursor-default flex-col">
+          <span className="text-white">{row.name}</span>
+          <span className="text-xs text-gray-500">{row.current_plan_name || "No active plan"}</span>
+        </div>
+      }
+    />
+  );
+}
+
+function DueAmountCell({ amount }) {
+  if (amount === null || amount === undefined || amount === "") {
+    return <span className="text-xs text-gray-500">No due</span>;
+  }
+
+  return <span className={`font-medium ${amount > 0 ? "text-amber-300" : "text-green-400"}`}>{formatAmount(amount)}</span>;
+}
+
+function DateCell({ value, emptyLabel = "N/A" }) {
+  return (
+    <span className={value ? "text-gray-200" : "text-xs text-gray-500"}>
+      {value ? formatDate(value) : emptyLabel}
+    </span>
+  );
+}
+
+function formatAmount(amount) {
+  if (amount === null || amount === undefined || amount === "") {
+    return "No due";
+  }
+
+  return `Rs ${amount}`;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "N/A";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function StatusPill({ status }) {

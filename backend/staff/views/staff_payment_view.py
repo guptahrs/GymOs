@@ -1,11 +1,16 @@
 from rest_framework.generics import GenericAPIView
 
-from staff.models import Staff, StaffPayment
 from common.responses.api_response import APIResponse
+from common.utills.subscription_guard import ensure_gym_write_access
+from staff.models import Staff, StaffPayment
 
 class PayStaffSalaryView(GenericAPIView):
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         staff_id = request.data.get("staff_id")
         amount = request.data.get("amount")
 

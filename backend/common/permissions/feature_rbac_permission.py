@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 from accounts.models import Permission
-from common.utills.feature_checker import has_feature
+from common.utills.feature_checker import has_feature, has_write_access
 
 
 class FeatureAndRBACPermission(BasePermission):
@@ -32,6 +32,16 @@ class FeatureAndRBACPermission(BasePermission):
             return True  # unprotected view
 
         gym_id = user.get("gym_id")
+        action = self.ACTION_MAP.get(request.method)
+        if not action:
+            return False
+
+        if action != "read" and gym_id and not has_write_access(gym_id):
+            self.message = {
+                "error": "subscription_read_only",
+                "detail": "Your trial or subscription has ended. Data changes are disabled until you activate a plan.",
+            }
+            return False
 
         # Gate 1: plan-level feature gate
         if gym_id and not has_feature(gym_id, feature_code):
@@ -42,10 +52,6 @@ class FeatureAndRBACPermission(BasePermission):
             return False
 
         # Gate 2: role-based permission
-        action = self.ACTION_MAP.get(request.method)
-        if not action:
-            return False
-
         perm = Permission.objects.filter(
             role_id=user.get("role_id"),
             feature__code=feature_code

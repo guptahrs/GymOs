@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 
 from common.responses.api_response import APIResponse
+from common.utills.subscription_guard import ensure_gym_write_access
 from staff.models import TrainingType
 from staff.serializers.training_type_serializer import (
     TrainingTypeCreateUpdateSerializer,
@@ -32,6 +33,9 @@ class TrainingTypeListCreateView(GenericAPIView):
         gym_id = self.get_gym_id(request)
         if not gym_id:
             return APIResponse.error("Gym id is required", status=status.HTTP_400_BAD_REQUEST)
+        access_error = ensure_gym_write_access(request, gym_id)
+        if access_error:
+            return access_error
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -69,6 +73,9 @@ class TrainingTypeDetailView(GenericAPIView):
         training_type = self.get_object(request, training_type_id)
         if not training_type:
             return APIResponse.error("Training type not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, training_type.gym_id_id)
+        if access_error:
+            return access_error
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -87,6 +94,9 @@ class TrainingTypeDetailView(GenericAPIView):
         training_type = self.get_object(request, training_type_id)
         if not training_type:
             return APIResponse.error("Training type not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, training_type.gym_id_id)
+        if access_error:
+            return access_error
 
         is_active = request.data.get("is_active")
         if is_active is None:
@@ -107,6 +117,9 @@ class TrainingTypeDetailView(GenericAPIView):
         training_type = self.get_object(request, training_type_id)
         if not training_type:
             return APIResponse.error("Training type not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, training_type.gym_id_id)
+        if access_error:
+            return access_error
 
         training_type.is_active = False
         training_type.is_deleted = True

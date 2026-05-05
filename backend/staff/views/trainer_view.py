@@ -6,6 +6,7 @@ from accounts.models import User
 from common.constants.enums import UserType
 from common.responses.api_response import APIResponse
 from common.services.address_service import create_address
+from common.utills.subscription_guard import ensure_gym_write_access
 from staff.models import Trainer
 from staff.serializers.trainer_serializer import TrainerCreateSerializer, TrainerSerializer
 
@@ -29,6 +30,10 @@ class TrainerListCreateView(GenericAPIView):
         return APIResponse.success(data=TrainerSerializer(trainers, many=True).data)
 
     def post(self, request):
+        access_error = ensure_gym_write_access(request)
+        if access_error:
+            return access_error
+
         # Unified onboarding POST handler.
         data = request.data.copy()
         user_claims = getattr(request, "user_claims", None)
@@ -170,6 +175,9 @@ class TrainerDetailView(GenericAPIView):
         trainer = self.get_object(request, trainer_id)
         if not trainer:
             return APIResponse.error("Trainer not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, trainer.gym_id_id)
+        if access_error:
+            return access_error
 
         data = request.data
 
@@ -226,6 +234,9 @@ class TrainerDetailView(GenericAPIView):
         trainer = self.get_object(request, trainer_id)
         if not trainer:
             return APIResponse.error("Trainer not found", status=status.HTTP_404_NOT_FOUND)
+        access_error = ensure_gym_write_access(request, trainer.gym_id_id)
+        if access_error:
+            return access_error
 
         trainer.is_active = False
         trainer.is_deleted = True
