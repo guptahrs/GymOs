@@ -12,12 +12,13 @@ from common.services.address_service import create_address
 from common.responses.api_response import APIResponse
 from common.constants.enums import UserType, OnboardingStep, PaymentStatus
 from common.permissions.feature_rbac_permission import FeatureAndRBACPermission
+from common.permissions.gym_owner_permission import IsGymOwner
 from common.utills.subscription_guard import ensure_gym_write_access
 
 
 class LeadListCreateView(GenericAPIView):
 	"""Create and list leads using the existing `User` model with `user_type=LEAD`."""
-	permission_classes = [FeatureAndRBACPermission]
+	permission_classes = [IsGymOwner]
 	feature = "leads"
 
  

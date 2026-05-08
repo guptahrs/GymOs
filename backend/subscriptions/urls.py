@@ -5,6 +5,11 @@ from subscriptions.views.subscription_view import (
     CurrentSubscriptionView,
     GetActiveSubscriptionView,
 )
+from subscriptions.views.payment_view import (
+    CreatePaymentOrderView,
+    VerifyPaymentView,
+    PaymentHistoryView
+)
 # from subscriptions.views.plan_view import GetActivePlansView
 
 urlpatterns = [
@@ -14,5 +19,10 @@ urlpatterns = [
     path("all-plans/", GetAllPlansView.as_view()),
     path("current/<uuid:gym_id>/", CurrentSubscriptionView.as_view()),
     path("active-plans/", GetAllActivePlansView.as_view()),
+    
+     # ── Razorpay payment ──
+    path("payment/create-order/",  CreatePaymentOrderView.as_view()),
+    path("payment/verify/",        VerifyPaymentView.as_view()),
+    path("payment/history/",       PaymentHistoryView.as_view()),
     
 ]

@@ -19,7 +19,7 @@ function PeriodFilter({ active, onChange }) {
   ];
 
   return (
-    <div className="flex gap-2 rounded-lg bg-gray-800 p-1">
+    <div className="theme-surface flex gap-2 rounded-lg border border-gray-700 p-1">
       {options.map((option) => (
         <button
           key={option.value}
@@ -27,7 +27,7 @@ function PeriodFilter({ active, onChange }) {
           className={`rounded px-3 py-1 text-xs transition ${
             active === option.value
               ? "bg-primary text-white"
-              : "text-gray-300 hover:bg-gray-700"
+              : "theme-muted hover:bg-white/5"
           }`}
         >
           {option.label}
@@ -39,7 +39,7 @@ function PeriodFilter({ active, onChange }) {
 
 function DaysFilter({ active, onChange, disabled = false }) {
   return (
-    <div className={`flex gap-2 rounded-lg p-1 ${disabled ? "bg-gray-900/80" : "bg-gray-800"}`}>
+    <div className={`theme-surface flex gap-2 rounded-lg border border-gray-700 p-1 ${disabled ? "opacity-70" : ""}`}>
       {[7, 14, 30].map((day) => (
         <button
           key={day}
@@ -48,7 +48,7 @@ function DaysFilter({ active, onChange, disabled = false }) {
           className={`rounded px-3 py-1 text-xs transition ${
             active === day
               ? "bg-primary text-white"
-              : "text-gray-300 hover:bg-gray-700"
+              : "theme-muted hover:bg-white/5"
           } ${disabled ? "cursor-not-allowed opacity-40 hover:bg-transparent" : ""}`}
         >
           {day === 7 ? "Next 7 days" : `${day} days`}
@@ -66,7 +66,7 @@ function StatusBadge({ status }) {
   };
 
   return (
-    <span className={`rounded px-2 py-1 text-xs capitalize ${map[status] || "bg-gray-700 text-gray-400"}`}>
+    <span className={`rounded px-2 py-1 text-xs capitalize ${map[status] || "theme-surface theme-muted"}`}>
       {status}
     </span>
   );
@@ -75,9 +75,9 @@ function StatusBadge({ status }) {
 function AccessBanner({ subscription }) {
   if (subscription.access_status === "trial") {
     return (
-      <div className="mt-5 rounded-3xl border border-orange-400/20 bg-[linear-gradient(135deg,rgba(251,146,60,0.18),rgba(217,70,239,0.14))] p-4 text-white">
-        <p className="text-sm font-semibold">Trial active</p>
-        <p className="mt-1 text-sm text-slate-200">
+      <div className="mt-5 rounded-3xl border border-orange-400/20 bg-[linear-gradient(135deg,rgba(251,146,60,0.18),rgba(217,70,239,0.14))] p-4">
+        <p className="theme-text text-sm font-semibold">Trial active</p>
+        <p className="theme-muted mt-1 text-sm">
           You have {subscription.days_left} days left. Pick a paid plan before trial expiry to avoid read-only mode.
         </p>
       </div>
@@ -89,9 +89,9 @@ function AccessBanner({ subscription }) {
   }
 
   return (
-    <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.18),rgba(14,165,233,0.1))] p-4 text-white">
-      <p className="text-sm font-semibold">Workspace is in read-only mode</p>
-      <p className="mt-1 text-sm text-slate-200">
+    <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(34,211,238,0.18),rgba(14,165,233,0.1))] p-4">
+      <p className="theme-text text-sm font-semibold">Workspace is in read-only mode</p>
+      <p className="theme-muted mt-1 text-sm">
         KPIs and charts stay visible, but new changes are locked until a plan is activated.
       </p>
     </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
     { label: "Add Trainer", path: "/trainer", color: "bg-yellow-500 hover:bg-yellow-600" },
     { label: "Add Plan", path: "/plan/add", color: "bg-purple-600 hover:bg-purple-700" },
     { label: "Record Payment", path: "/payment/record", color: "bg-green-600 hover:bg-green-700" },
-    { label: "View Attendance", path: "/attendance/view", color: "bg-gray-700 hover:bg-gray-800" },
+    { label: "View Attendance", path: "/attendance/view", color: "theme-surface" },
   ];
 
   return (
@@ -189,14 +189,15 @@ export default function Dashboard() {
       <div className="mb-6 mt-8 flex flex-wrap gap-3">
         {actionButtons.map((button) => {
           const disabled = !subscription?.can_manage_data && button.label !== "View Attendance";
+          const isNeutral = button.label === "View Attendance";
           return (
             <button
               key={button.label}
               disabled={disabled}
               onClick={() => navigate(button.path)}
-              className={`${button.color} rounded-lg px-4 py-2 text-sm font-semibold text-white shadow transition ${
-                disabled ? "cursor-not-allowed opacity-40 hover:bg-inherit" : ""
-              }`}
+              className={`${button.color} rounded-lg px-4 py-2 text-sm font-semibold shadow transition ${
+                isNeutral ? "theme-text border border-gray-700" : "text-white"
+              } ${disabled ? "cursor-not-allowed opacity-40 hover:bg-inherit" : ""}`}
             >
               {disabled ? `${button.label} Locked` : button.label}
             </button>
@@ -204,17 +205,17 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="mt-2 w-full rounded-2xl bg-card p-6 shadow-md">
+      <div className="theme-panel mt-2 w-full rounded-2xl border p-6 shadow-md">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg text-gray-300">Revenue Trend</h2>
+          <h2 className="theme-muted text-lg">Revenue Trend</h2>
           <PeriodFilter active={period} onChange={setPeriod} />
         </div>
         {chartLoading ? (
-          <div className="flex h-48 items-center justify-center text-sm text-gray-500">
+          <div className="theme-soft flex h-48 items-center justify-center text-sm">
             Loading chart...
           </div>
         ) : chartData.length === 0 ? (
-          <div className="flex h-48 items-center justify-center text-sm text-gray-600">
+          <div className="theme-soft flex h-48 items-center justify-center text-sm">
             No data yet for this period.
           </div>
         ) : (
@@ -222,33 +223,29 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="mt-6 w-full rounded-2xl bg-card p-6 shadow-md">
+      <div className="theme-panel mt-6 w-full rounded-2xl border p-6 shadow-md">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg text-gray-300">Upcoming Renewals</h2>
-          <DaysFilter
-            active={days}
-            onChange={setDays}
-            disabled={!renewalsEnabled}
-          />
+          <h2 className="theme-muted text-lg">Upcoming Renewals</h2>
+          <DaysFilter active={days} onChange={setDays} disabled={!renewalsEnabled} />
         </div>
 
         {!renewalsEnabled ? (
-          <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-[#0B1220] text-center">
-            <Lock size={24} className="mb-3 text-gray-500" />
-            <p className="text-sm font-medium text-gray-300">Upcoming renewals are disabled</p>
-            <p className="mt-1 max-w-md text-sm text-gray-500">
+          <div className="theme-surface flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-700 text-center">
+            <Lock size={24} className="theme-soft mb-3" />
+            <p className="theme-text text-sm font-medium">Upcoming renewals are disabled</p>
+            <p className="theme-soft mt-1 max-w-md text-sm">
               Activate a paid plan to manage renewal operations and other write actions again.
             </p>
           </div>
         ) : renewalsLoading ? (
-          <div className="py-8 text-center text-sm text-gray-500">Loading renewals...</div>
+          <div className="theme-soft py-8 text-center text-sm">Loading renewals...</div>
         ) : renewals.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-600">
+          <div className="theme-soft py-8 text-center text-sm">
             No renewals in the next {days} days.
           </div>
         ) : (
-          <table className="w-full table-auto text-left text-sm text-gray-300">
-            <thead className="bg-[#0B1220] text-xs uppercase tracking-wide text-gray-400">
+          <table className="theme-muted w-full table-auto text-left text-sm">
+            <thead className="theme-surface text-xs uppercase tracking-wide">
               <tr>
                 <th className="p-2">Member</th>
                 <th className="p-2">Plan</th>
@@ -263,7 +260,7 @@ export default function Dashboard() {
               {renewals.map((row) => (
                 <tr
                   key={row.member_id}
-                  className="border-b border-gray-700 transition hover:bg-gray-800/40"
+                  className="border-b border-gray-700 transition hover:bg-white/5"
                 >
                   <td className="p-2">
                     <div className="flex items-center gap-3">
@@ -271,8 +268,8 @@ export default function Dashboard() {
                         {row.name?.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-white">{row.name}</div>
-                        <div className="text-xs text-gray-500">{row.days_left} days left</div>
+                        <div className="theme-text font-semibold">{row.name}</div>
+                        <div className="theme-soft text-xs">{row.days_left} days left</div>
                       </div>
                     </div>
                   </td>
@@ -282,12 +279,12 @@ export default function Dashboard() {
                     </span>
                   </td>
                   <td className="p-2">
-                    <div className="text-white">{row.renewal_date}</div>
-                    <div className={`text-xs ${row.days_left <= 3 ? "text-red-400" : "text-gray-500"}`}>
+                    <div className="theme-text">{row.renewal_date}</div>
+                    <div className={`text-xs ${row.days_left <= 3 ? "text-red-400" : "theme-soft"}`}>
                       {row.days_left} day{row.days_left !== 1 ? "s" : ""} left
                     </div>
                   </td>
-                  <td className="p-2 font-medium text-white">Rs.{row.amount}</td>
+                  <td className="theme-text p-2 font-medium">Rs.{row.amount}</td>
                   <td className="p-2">
                     {row.remaining > 0 ? (
                       <span className="text-xs text-red-400">Rs.{row.remaining} due</span>
@@ -305,7 +302,7 @@ export default function Dashboard() {
                     >
                       Renew
                     </button>
-                    <button className="rounded bg-gray-700 px-3 py-1 text-xs text-white transition hover:bg-gray-600">
+                    <button className="theme-surface theme-text rounded border border-gray-700 px-3 py-1 text-xs transition hover:bg-white/5">
                       Remind
                     </button>
                   </td>

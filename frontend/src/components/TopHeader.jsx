@@ -9,7 +9,7 @@ function humanizePath(path) {
   const parts = path.split("/dashboard").filter(Boolean);
   const last = parts[parts.length - 1];
   // replace dashes with spaces and capitalize
-  return last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return last.replace(/[/-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function TopHeader({ title }) {

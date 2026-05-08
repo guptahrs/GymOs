@@ -12,12 +12,13 @@ FEATURES = [
     (FeatureCode.EXPENSES,  FeatureCode.EXPENSES.label),
     (FeatureCode.TRAINERS,  FeatureCode.TRAINERS.label),
     (FeatureCode.WHATSAPP,  FeatureCode.WHATSAPP.label),
+    (FeatureCode.WHITE_LABEL, FeatureCode.WHITE_LABEL.label),
 ]
 
 PLAN_FEATURES = {
     PlanName.STANDARD: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD],
     PlanName.ELITE:    [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES],
-    PlanName.PREMIUM_PLUS: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES, FeatureCode.TRAINERS, FeatureCode.WHATSAPP],}
+    PlanName.PREMIUM_PLUS: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES, FeatureCode.TRAINERS, FeatureCode.WHATSAPP, FeatureCode.WHITE_LABEL],}
 
 
 class Command(BaseCommand):

@@ -14,6 +14,7 @@ const FEATURE_CODES = [
   { code: "expenses",  label: "Expenses" },
   { code: "trainers",  label: "Trainers" },
   { code: "whatsapp",  label: "WhatsApp Notifications" },
+  { code: "white_label", label: "White Labeling" },
 ];
 
 const BADGE_COLORS = [

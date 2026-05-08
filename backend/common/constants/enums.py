@@ -23,6 +23,7 @@ class FeatureCode(models.TextChoices):
     EXPENSES  = "expenses",  "Expenses"
     TRAINERS  = "trainers",  "Trainers"
     WHATSAPP  = "whatsapp",  "WhatsApp Notifications"
+    WHITE_LABEL = "white_label", "White Labeling"
 
 
 class ResponseStatus(BaseEnum):
@@ -91,3 +92,22 @@ class PaymentMode(BaseEnum):
     CASH = "CASH"
     CARD = "CARD"
     UPI = "UPI"
+
+
+class ThemeMode(BaseEnum):
+    LIGHT = "light"
+    DARK = "dark"
+    SYSTEM = "system"
+
+class PaymentOrderStatus(BaseEnum):
+    CREATED = "created"
+    PAID = "paid"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
+class ExpenseCategory(BaseEnum):
+    SALARY = "Salary"
+    RENT = "Rent"
+    MAINTENANCE = "Maintenance"
+    SUBSCRIPTION = "Subscription"
+    OTHER = "Other"

@@ -11,6 +11,7 @@ features = [
     (FeatureCode.EXPENSES,  FeatureCode.EXPENSES.label),
     (FeatureCode.TRAINERS,  FeatureCode.TRAINERS.label),
     (FeatureCode.WHATSAPP,  FeatureCode.WHATSAPP.label),
+    (FeatureCode.WHITE_LABEL, FeatureCode.WHITE_LABEL.label),
 ]
 
 class Command(BaseCommand):

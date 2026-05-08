@@ -1,9 +1,11 @@
 from rest_framework import serializers
-from gyms.models import Gym
+from gyms.models import Gym, GymBranding
 from common.models import Address
 from subscriptions.models import Subscription, Plan
 from accounts.models import User
 from common.constants.enums import UserType
+from common.utills.feature_checker import has_feature
+from common.constants.enums import FeatureCode
 from subscriptions.services.access_service import get_gym_access_context
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -89,7 +91,39 @@ class GymListSerializer(serializers.ModelSerializer):
         
 
 class GymDetailSerializer(serializers.ModelSerializer):
+    branding = serializers.SerializerMethodField()
 
     class Meta:
         model = Gym
-        fields = ["gym_id", "name", "email", "phone"]
+        fields = ["gym_id", "name", "email", "phone", "branding"]
+
+    def get_branding(self, obj):
+        branding, _ = GymBranding.objects.get_or_create(gym=obj)
+        return GymBrandingSerializer(
+            branding,
+            context={
+                "can_customize": has_feature(obj.gym_id, FeatureCode.WHITE_LABEL),
+            },
+        ).data
+
+
+class GymBrandingSerializer(serializers.ModelSerializer):
+    can_customize = serializers.SerializerMethodField()
+    gym_name = serializers.CharField(source="gym.name", read_only=True)
+
+    class Meta:
+        model = GymBranding
+        fields = [
+            "branding_id",
+            "gym_name",
+            "brand_name",
+            "logo_url",
+            "favicon_url",
+            "primary_color",
+            "accent_color",
+            "theme_mode",
+            "can_customize",
+        ]
+
+    def get_can_customize(self, obj):
+        return bool(self.context.get("can_customize", False))

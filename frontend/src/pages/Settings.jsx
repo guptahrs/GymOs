@@ -5,13 +5,18 @@ import {
   ChevronRight,
   Dumbbell,
   Bell,
+  Monitor,
+  Moon,
+  Palette,
   Plus,
   SlidersHorizontal,
+  Sun,
   Trash2,
   UserCog,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import API from "../api/client";
+import { useBranding } from "../context/BrandingContext";
 import MainLayout from "../layouts/MainLayout";
 import { showSnackbar } from "../utils/snackbarService";
 
@@ -62,7 +67,7 @@ function Toggle({ enabled, onClick, label }) {
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={`relative h-6 w-11 rounded-full transition ${enabled ? "bg-primary" : "bg-gray-700"}`}
+      className={`relative h-6 w-11 rounded-full transition ${enabled ? "bg-primary" : "theme-surface border border-gray-700"}`}
     >
       <span
         className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${enabled ? "left-6" : "left-1"}`}
@@ -74,6 +79,7 @@ function Toggle({ enabled, onClick, label }) {
 export default function Settings() {
   const location = useLocation();
   const queryClient = useQueryClient();
+  const gymId = localStorage.getItem("gym_id");
   const sectionFromPath = location.pathname.includes("account")
     ? "account"
     : location.pathname.includes("notifications")
@@ -89,6 +95,15 @@ export default function Settings() {
     capacity: 10,
     price: "",
   });
+  const { branding: appliedBranding } = useBranding();
+  const [brandingForm, setBrandingForm] = useState({
+    brand_name: "",
+    logo_url: "",
+    favicon_url: "",
+    primary_color: "#3B82F6",
+    accent_color: "#0F172A",
+    theme_mode: "dark",
+  });
 
   const { data: trainingTypes = [], isLoading: isTrainingTypesLoading } = useQuery({
     queryKey: ["training-types"],
@@ -97,6 +112,15 @@ export default function Settings() {
       return response.data.data || [];
     },
     enabled: activeSection === "training",
+  });
+
+  const { data: brandingSettings } = useQuery({
+    queryKey: ["gym_branding", gymId],
+    queryFn: async () => {
+      const response = await API.get("/gyms/branding/");
+      return response.data.data || null;
+    },
+    enabled: activeSection === "general" && Boolean(gymId),
   });
 
   const createTrainingTypeMutation = useMutation({
@@ -133,6 +157,19 @@ export default function Settings() {
     },
   });
 
+  const updateBrandingMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await API.put("/gyms/branding/", payload);
+      return response.data;
+    },
+    onSuccess: (result) => {
+      const updatedBranding = result?.data || null;
+      queryClient.setQueryData(["gym_branding", gymId], updatedBranding);
+      queryClient.invalidateQueries({ queryKey: ["gym_branding", gymId] });
+      showSnackbar("Branding updated", "success");
+    },
+  });
+
   const addTrainingType = (event) => {
     event.preventDefault();
     const name = form.name.trim();
@@ -164,16 +201,38 @@ export default function Settings() {
     setActiveSection(sectionFromPath);
   }, [sectionFromPath]);
 
+  useEffect(() => {
+    if (!brandingSettings) {
+      return;
+    }
+
+    setBrandingForm({
+      brand_name: brandingSettings.brand_name || "",
+      logo_url: brandingSettings.logo_url || "",
+      favicon_url: brandingSettings.favicon_url || "",
+      primary_color: brandingSettings.primary_color || "#3B82F6",
+      accent_color: brandingSettings.accent_color || "#0F172A",
+      theme_mode: brandingSettings.theme_mode || "dark",
+    });
+  }, [brandingSettings]);
+
+  const saveBranding = (event) => {
+    event.preventDefault();
+    updateBrandingMutation.mutate(brandingForm);
+  };
+
+  const canCustomizeBranding = Boolean(brandingSettings?.can_customize);
+
   return (
     <MainLayout>
-      <div className="min-h-[calc(100vh-96px)] min-w-0 overflow-hidden rounded-2xl border border-gray-800 bg-[#080d18] shadow-2xl shadow-black/30">
-        <div className="border-b border-gray-800 bg-gradient-to-r from-[#101828] via-[#0b1220] to-[#111827] px-4 py-4">
+      <div className="theme-panel min-h-[calc(100vh-96px)] min-w-0 overflow-hidden rounded-2xl border shadow-2xl shadow-black/10">
+        <div className="theme-surface border-b border-gray-800 px-4 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="mb-2 flex items-center gap-2 text-sm text-gray-400">
+              <div className="theme-muted mb-2 flex items-center gap-2 text-sm">
                 <span>Settings</span>
                 <ChevronRight size={16} />
-                <span className="text-white">{currentSection.breadcrumb}</span>
+                <span className="theme-text">{currentSection.breadcrumb}</span>
               </div>
               {/* <h1 className="m-0 text-3xl font-semibold text-white">{currentSection.title}</h1> */}
             </div>
@@ -198,17 +257,17 @@ export default function Settings() {
             {activeSection === "training" && (
               <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
                 <section className="min-w-0 space-y-5">
-                  <div className="rounded-xl border border-gray-800 bg-card p-5">
+                  <div className="theme-panel rounded-xl border p-5">
                     <div className="mb-5 flex items-center justify-between gap-4">
                       <div>
-                        <h2 className="m-0 text-xl font-semibold text-white">Training Type Settings</h2>
-                        <p className="text-sm text-gray-400">Manage trainer services, timing, capacity, and availability.</p>
+                        <h2 className="theme-text m-0 text-xl font-semibold">Training Type Settings</h2>
+                        <p className="theme-muted text-sm">Manage trainer services, timing, capacity, and availability.</p>
                       </div>
                     </div>
 
                     <div className="overflow-hidden rounded-xl border border-gray-800">
                       <table className="w-full table-fixed text-left text-sm">
-                        <thead className="bg-[#0b1220] text-xs uppercase tracking-wide text-gray-500">
+                        <thead className="theme-surface theme-muted text-xs uppercase tracking-wide">
                           <tr>
                             <th className="w-[38%] px-4 py-3">Training Type</th>
                             <th className="w-[17%] px-4 py-3">Timing</th>
@@ -217,17 +276,17 @@ export default function Settings() {
                             <th className="w-[14%] px-4 py-3 text-right">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-800 bg-[#0f172a]/70">
+                        <tbody className="theme-panel theme-muted divide-y divide-gray-800">
                           {trainingTypes.map((type) => (
-                            <tr key={type.id} className="text-gray-300">
+                            <tr key={type.id} className="theme-muted hover:bg-white/5">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
                                     <Dumbbell size={18} />
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-white">{type.name}</div>
-                                    <div className="text-xs text-gray-500">Trainer assignment ready</div>
+                                    <div className="theme-text font-semibold">{type.name}</div>
+                                    <div className="theme-soft text-xs">Trainer assignment ready</div>
                                   </div>
                                 </div>
                               </td>
@@ -258,14 +317,14 @@ export default function Settings() {
                           ))}
                           {!isTrainingTypesLoading && trainingTypes.length === 0 && (
                             <tr>
-                              <td colSpan="5" className="px-4 py-10 text-center text-sm text-gray-500">
+                              <td colSpan="5" className="theme-soft px-4 py-10 text-center text-sm">
                                 No training types added yet.
                               </td>
                             </tr>
                           )}
                           {isTrainingTypesLoading && (
                             <tr>
-                              <td colSpan="5" className="px-4 py-10 text-center text-sm text-gray-500">
+                              <td colSpan="5" className="theme-soft px-4 py-10 text-center text-sm">
                                 Loading training types...
                               </td>
                             </tr>
@@ -277,20 +336,20 @@ export default function Settings() {
                 </section>
 
                 <aside className="min-w-0 space-y-5">
-                  <form onSubmit={addTrainingType} className="rounded-xl border border-gray-800 bg-card p-5">
+                  <form onSubmit={addTrainingType} className="theme-panel rounded-xl border p-5">
                     <div className="mb-5 flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
                         <Plus size={18} />
                       </div>
                       <div>
-                        <h2 className="m-0 text-lg font-semibold text-white">Add Type</h2>
-                        <p className="text-sm text-gray-400">Create a new trainer service.</p>
+                        <h2 className="theme-text m-0 text-lg font-semibold">Add Type</h2>
+                        <p className="theme-muted text-sm">Create a new trainer service.</p>
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       <label className="block">
-                        <span className="mb-1 block text-sm text-gray-300">Name</span>
+                        <span className="theme-muted mb-1 block text-sm">Name</span>
                         <input
                           value={form.name}
                           onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -300,7 +359,7 @@ export default function Settings() {
                       </label>
 
                       <label className="block">
-                        <span className="mb-1 block text-sm text-gray-300">Timing</span>
+                        <span className="theme-muted mb-1 block text-sm">Timing</span>
                         <select
                           value={form.shift}
                           onChange={(event) => setForm({ ...form, shift: event.target.value })}
@@ -314,7 +373,7 @@ export default function Settings() {
 
                       <div className="grid grid-cols-2 gap-3">
                         <label className="block">
-                          <span className="mb-1 block text-sm text-gray-300">Capacity</span>
+                          <span className="theme-muted mb-1 block text-sm">Capacity</span>
                           <input
                             type="number"
                             min="1"
@@ -325,7 +384,7 @@ export default function Settings() {
                         </label>
 
                         <label className="block">
-                          <span className="mb-1 block text-sm text-gray-300">Price</span>
+                          <span className="theme-muted mb-1 block text-sm">Price</span>
                           <input
                             type="number"
                             min="0"
@@ -348,14 +407,14 @@ export default function Settings() {
                     </div>
                   </form>
 
-                  <div className="rounded-xl border border-gray-800 bg-card p-5">
+                  <div className="theme-panel rounded-xl border p-5">
                     <div className="mb-4 flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
                         <CalendarClock size={18} />
                       </div>
                       <div>
-                        <h2 className="m-0 text-lg font-semibold text-white">Default Timing</h2>
-                        <p className="text-sm text-gray-400">Applies to new trainer profiles.</p>
+                        <h2 className="theme-text m-0 text-lg font-semibold">Default Timing</h2>
+                        <p className="theme-muted text-sm">Applies to new trainer profiles.</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
@@ -366,7 +425,7 @@ export default function Settings() {
                           className={`rounded-lg border px-3 py-2 text-sm ${
                             shift === "Both"
                               ? "border-primary bg-primary/15 text-primary"
-                              : "border-gray-800 bg-[#0b1220] text-gray-400"
+                              : "theme-surface theme-muted border-gray-800"
                           }`}
                         >
                           {shift}
@@ -378,17 +437,198 @@ export default function Settings() {
               </div>
             )}
 
-            {activeSection !== "training" && (
+            {activeSection === "general" && (
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <form onSubmit={saveBranding} className="theme-panel rounded-xl border p-6">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                      <Palette size={18} />
+                    </div>
+                    <div>
+                      <h2 className="theme-text m-0 text-xl font-semibold">White Label Branding</h2>
+                      <p className="theme-muted text-sm">
+                        Customize your brand identity, icon, and light or dark experience.
+                      </p>
+                    </div>
+                  </div>
+
+                  {!canCustomizeBranding && (
+                    <div className="mb-5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                      White labeling is not included in your current plan. Upgrade to unlock branding and theme controls.
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <label className="block">
+                      <span className="theme-muted mb-1 block text-sm">Brand Name</span>
+                      <input
+                        value={brandingForm.brand_name}
+                        onChange={(event) => setBrandingForm({ ...brandingForm, brand_name: event.target.value })}
+                        className="input"
+                        disabled={!canCustomizeBranding}
+                        placeholder="Atlas Fitness"
+                      />
+                    </label>
+
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      <label className="block">
+                        <span className="theme-muted mb-1 block text-sm">Logo URL</span>
+                        <input
+                          value={brandingForm.logo_url}
+                          onChange={(event) => setBrandingForm({ ...brandingForm, logo_url: event.target.value })}
+                          className="input"
+                          disabled={!canCustomizeBranding}
+                          placeholder="https://..."
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="theme-muted mb-1 block text-sm">Favicon URL</span>
+                        <input
+                          value={brandingForm.favicon_url}
+                          onChange={(event) => setBrandingForm({ ...brandingForm, favicon_url: event.target.value })}
+                          className="input"
+                          disabled={!canCustomizeBranding}
+                          placeholder="https://..."
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      <label className="block">
+                        <span className="theme-muted mb-1 block text-sm">Primary Color</span>
+                        <input
+                          type="color"
+                          value={brandingForm.primary_color}
+                          onChange={(event) => setBrandingForm({ ...brandingForm, primary_color: event.target.value })}
+                          className="theme-panel h-12 w-full rounded-lg border p-2"
+                          disabled={!canCustomizeBranding}
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="theme-muted mb-1 block text-sm">Accent / Card Color</span>
+                        <input
+                          type="color"
+                          value={brandingForm.accent_color}
+                          onChange={(event) => setBrandingForm({ ...brandingForm, accent_color: event.target.value })}
+                          className="theme-panel h-12 w-full rounded-lg border p-2"
+                          disabled={!canCustomizeBranding}
+                        />
+                      </label>
+                    </div>
+
+                    <div>
+                      <span className="theme-muted mb-2 block text-sm">Theme Mode</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { key: "light", label: "Light", icon: Sun },
+                          { key: "dark", label: "Dark", icon: Moon },
+                          { key: "system", label: "System", icon: Monitor },
+                        ].map((mode) => {
+                          const Icon = mode.icon;
+                          const active = brandingForm.theme_mode === mode.key;
+                          return (
+                            <button
+                              key={mode.key}
+                              type="button"
+                              disabled={!canCustomizeBranding}
+                              onClick={() => setBrandingForm({ ...brandingForm, theme_mode: mode.key })}
+                              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm transition ${
+                                active
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "theme-muted border-gray-700 hover:border-gray-500"
+                              } ${!canCustomizeBranding ? "cursor-not-allowed opacity-50" : ""}`}
+                            >
+                              <Icon size={16} />
+                              {mode.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!canCustomizeBranding || updateBrandingMutation.isPending}
+                      className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updateBrandingMutation.isPending ? "Saving..." : "Save Branding"}
+                    </button>
+                  </div>
+                </form>
+
+                <aside className="space-y-5">
+                  <div className="theme-panel rounded-xl border p-5">
+                    <h2 className="theme-text m-0 text-lg font-semibold">Live Preview</h2>
+                    <p className="theme-muted mt-1 text-sm">This is how your workspace branding will feel.</p>
+
+                    <div
+                      className="mt-5 rounded-3xl border p-5"
+                      style={{
+                        borderColor: `${brandingForm.primary_color}33`,
+                        background:
+                          brandingForm.theme_mode === "light"
+                            ? "linear-gradient(180deg, #ffffff, #f8fafc)"
+                            : `linear-gradient(180deg, ${brandingForm.accent_color}, #020617)`,
+                      }}
+                    >
+                      <div className="mb-4 flex items-center gap-3">
+                        {brandingForm.logo_url ? (
+                          <img src={brandingForm.logo_url} alt="Logo preview" className="h-12 w-12 rounded-xl object-cover" />
+                        ) : (
+                          <div
+                            className="flex h-12 w-12 items-center justify-center rounded-xl text-sm font-semibold text-white"
+                            style={{ backgroundColor: brandingForm.primary_color }}
+                          >
+                            {(brandingForm.brand_name || appliedBranding.gym_name || "G").slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold" style={{ color: brandingForm.theme_mode === "light" ? "#0f172a" : "#f8fafc" }}>
+                            {brandingForm.brand_name || appliedBranding.gym_name || "Gym SaaS"}
+                          </div>
+                          <div style={{ color: brandingForm.theme_mode === "light" ? "#475569" : "#94a3b8" }} className="text-sm">
+                            {brandingForm.theme_mode} mode workspace
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {[1, 2].map((item) => (
+                          <div
+                            key={item}
+                            className="rounded-2xl p-4"
+                            style={{
+                              backgroundColor: brandingForm.theme_mode === "light" ? "#e2e8f0" : "rgba(255,255,255,0.06)",
+                            }}
+                          >
+                            <div className="text-xs uppercase tracking-wide" style={{ color: brandingForm.primary_color }}>
+                              KPI
+                            </div>
+                            <div className="mt-2 text-xl font-semibold" style={{ color: brandingForm.theme_mode === "light" ? "#0f172a" : "#f8fafc" }}>
+                              24
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            )}
+
+            {activeSection !== "training" && activeSection !== "general" && (
               <div className="grid gap-5 lg:grid-cols-2">
                 {currentSection.cards.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.title} className="rounded-xl border border-gray-800 bg-card p-6">
+                    <div key={item.title} className="theme-panel rounded-xl border p-6">
                       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-primary">
                         <Icon size={20} />
                       </div>
-                      <h2 className="m-0 text-xl font-semibold text-white">{item.title}</h2>
-                      <p className="mt-2 text-sm text-gray-400">{item.text}</p>
+                      <h2 className="theme-text m-0 text-xl font-semibold">{item.title}</h2>
+                      <p className="theme-muted mt-2 text-sm">{item.text}</p>
                     </div>
                   );
                 })}

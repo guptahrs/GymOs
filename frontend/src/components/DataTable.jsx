@@ -1,11 +1,10 @@
 export default function DataTable({ columns, data, entity}) {
   return (
-    <div className="overflow-x-auto overflow-y-visible rounded-2xl border border-gray-800 bg-card">
+    <div className="theme-panel overflow-x-auto overflow-y-visible rounded-2xl border">
 
-      <table className="w-full text-sm text-left text-gray-300">
+      <table className="theme-muted w-full text-left text-sm">
 
-        {/* Header */}
-        <thead className="bg-[#0B1220] text-gray-400 text-xs uppercase tracking-wide">
+        <thead className="theme-surface theme-muted text-xs uppercase tracking-wide">
           <tr>
             {columns.map((col, i) => (
               <th key={i} className="px-6 py-4 font-medium">
@@ -30,8 +29,8 @@ export default function DataTable({ columns, data, entity}) {
                       col.render(row)
                     ) : col.accessor === "name" ? (
                       <div className="flex flex-col">
-                        <span className="text-white">{row.name}</span>
-                        <span className="text-xs text-gray-500">{row.email}</span>
+                        <span className="theme-text">{row.name}</span>
+                        <span className="theme-soft text-xs">{row.email}</span>
                       </div>
                     ) : col.accessor === "status" ? (
                       <span className={`px-2 py-1 rounded text-xs
@@ -50,7 +49,7 @@ export default function DataTable({ columns, data, entity}) {
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} className="text-center py-12 text-gray-500">
+              <td colSpan={columns.length} className="theme-soft py-12 text-center">
                 No {entity} found
               </td>
             </tr>

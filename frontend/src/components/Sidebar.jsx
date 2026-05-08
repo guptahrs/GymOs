@@ -18,6 +18,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import API from "../api/client";
 import PricingModal from "../components/PricingModal";
+import { useBranding } from "../context/BrandingContext";
 import { useSubscriptionAccess } from "../hooks/useSubscriptionAccess";
 
 const defaultSubscription = {
@@ -129,6 +130,7 @@ export default function Sidebar({ collapsed = false }) {
   const [settingsOpen, setSettingsOpen] = useState(
     location.pathname.startsWith("/settings")
   );
+  const { branding } = useBranding();
 
   const menu = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -192,7 +194,20 @@ export default function Sidebar({ collapsed = false }) {
             : "translate-y-0 opacity-100"
         }`}
       >
-        {gymData?.name || "Gym SaaS"}
+        <div className="flex items-center gap-3">
+          {branding?.logo_url ? (
+            <img
+              src={branding.logo_url}
+              alt={branding.brand_name || gymData?.name || "Gym SaaS"}
+              className="h-10 w-10 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-sm uppercase text-primary">
+              {(branding?.brand_name || gymData?.name || "G").slice(0, 1)}
+            </div>
+          )}
+          <span>{branding?.brand_name || gymData?.name || "Gym SaaS"}</span>
+        </div>
       </h2>
 
       <ul className="space-y-2">{menu.map(renderMenuItem)}</ul>

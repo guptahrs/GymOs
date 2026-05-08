@@ -1,11 +1,20 @@
 from django.urls import path
-from gyms.views.gym_view import CreateGymBasicView, AddGymAddressView, AddGymOwnerView, GymListView, GymDetailView
+from gyms.views.gym_view import (
+    CreateGymBasicView,
+    AddGymAddressView,
+    AddGymOwnerView,
+    GymListView,
+    GymDetailView,
+    GymBrandingView,
+)
 
 urlpatterns = [
     path("create/", CreateGymBasicView.as_view()),
     path("add-address/", AddGymAddressView.as_view()),
     path("add-owner/", AddGymOwnerView.as_view()),
     path("list/", GymListView.as_view()),
-    path("detail/<str:gym_id>/", GymDetailView.as_view())
+    path("detail/<str:gym_id>/", GymDetailView.as_view()),
+    path("branding/", GymBrandingView.as_view()),
+    path("branding/<str:gym_id>/", GymBrandingView.as_view()),
 
 ]

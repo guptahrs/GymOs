@@ -25,6 +25,7 @@ import Leads from "./pages/Leads";
 import Expenses from "./pages/Expenses";
 import Settings from "./pages/Settings";
 import ComingSoon from "./pages/CommingSoon";
+import UpgradePlan from "./pages/UpgradePlan";
 
 export default function App() {
   return (
@@ -157,6 +158,11 @@ export default function App() {
             <ProtectedRoute>
               <Settings />
             </ProtectedRoute>
+          } />
+          <Route path="/upgrade" element={
+              <ProtectedRoute allowedRoles={["gym_owner"]}>
+                <UpgradePlan />
+              </ProtectedRoute>
           } />
         </Routes>
       </SnackbarProvider>
