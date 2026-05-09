@@ -26,6 +26,7 @@ import Expenses from "./pages/Expenses";
 import Settings from "./pages/Settings";
 import ComingSoon from "./pages/CommingSoon";
 import UpgradePlan from "./pages/UpgradePlan";
+import SuperAdminPayments from "./pages/SuperAdminPayments";
 
 export default function App() {
   return (
@@ -163,6 +164,11 @@ export default function App() {
               <ProtectedRoute allowedRoles={["gym_owner"]}>
                 <UpgradePlan />
               </ProtectedRoute>
+          } />
+          <Route path="/super-admin/payments" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminPayments />
+            </ProtectedRoute>
           } />
         </Routes>
       </SnackbarProvider>

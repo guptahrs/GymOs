@@ -8,12 +8,14 @@ from django.utils import timezone
 from datetime import timedelta
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
+from django.db.models import Sum
 
 from subscriptions.models import Plan, Subscription, PaymentOrder
 from common.responses.api_response import APIResponse
 from common.constants.enums import SubscriptionStatus, PaymentOrderStatus, ExpenseCategory
 from gyms.models import Gym
 from expenses.models import Expense
+from common.permissions.super_admin_permission import IsSuperAdmin
 
 
 
@@ -246,3 +248,58 @@ class PaymentHistoryView(GenericAPIView):
         ]
 
         return APIResponse.success(data=data)
+
+
+class SuperAdminPaymentListView(GenericAPIView):
+    """
+    GET /api/subscriptions/payment/all/
+    Super admin sees all payments across all gyms
+    """
+    permission_classes = [IsSuperAdmin]
+
+    def get(self, request):
+        from subscriptions.models import PaymentOrder
+
+        status_filter = request.query_params.get("status")   # created|paid|failed
+        search        = request.query_params.get("search", "").strip()
+
+        orders = PaymentOrder.objects.select_related(
+            "gym_id", "plan"
+        ).order_by("-created_at")
+
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+
+        if search:
+            orders = orders.filter(
+                gym_id__name__icontains=search
+            )
+
+        data = [
+            {
+                "order_id":            str(o.order_id),
+                "razorpay_order_id":   o.razorpay_order_id,
+                "razorpay_payment_id": o.razorpay_payment_id or "—",
+                "gym_name":            o.gym_id.name,
+                "gym_id":              str(o.gym_id.gym_id),
+                "plan_name":           o.plan.name,
+                "plan_badge_color":    getattr(o.plan, "badge_color", "#3b82f6"),
+                "amount":              float(o.amount),
+                "status":              o.status,
+                "created_at":          o.created_at.strftime("%d %b %Y, %I:%M %p"),
+            }
+            for o in orders
+        ]
+
+        # summary counts for stat cards
+        all_orders = PaymentOrder.objects.all()
+        summary = {
+            "total":    all_orders.count(),
+            "paid":     all_orders.filter(status="paid").count(),
+            "failed":   all_orders.filter(status="failed").count(),
+            "created":  all_orders.filter(status="created").count(),
+            "revenue":  float(all_orders.filter(status="paid").aggregate(
+                            t=Sum("amount"))["t"] or 0),
+        }
+
+        return APIResponse.success(data={"payments": data, "summary": summary})

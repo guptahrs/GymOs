@@ -111,3 +111,10 @@ class ExpenseCategory(BaseEnum):
     MAINTENANCE = "Maintenance"
     SUBSCRIPTION = "Subscription"
     OTHER = "Other"
+
+
+class WhatsappTemplateCode(BaseEnum):
+    SUBSCRIPTION_EXPIRY_REMINDER = "subscription_expiry_reminder"
+    MEMBERSHIP_RENEWAL_REMINDER = "membership_reminder"
+    NEW_MEMBER_WELCOME = "new_member_welcome"
+    PAYMENT_RECEIPT = "payment_receipt"

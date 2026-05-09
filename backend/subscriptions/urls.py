@@ -8,7 +8,8 @@ from subscriptions.views.subscription_view import (
 from subscriptions.views.payment_view import (
     CreatePaymentOrderView,
     VerifyPaymentView,
-    PaymentHistoryView
+    PaymentHistoryView,
+    SuperAdminPaymentListView
 )
 # from subscriptions.views.plan_view import GetActivePlansView
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path("payment/create-order/",  CreatePaymentOrderView.as_view()),
     path("payment/verify/",        VerifyPaymentView.as_view()),
     path("payment/history/",       PaymentHistoryView.as_view()),
+    path("payment/all/",           SuperAdminPaymentListView.as_view())
     
 ]
