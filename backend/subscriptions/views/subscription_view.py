@@ -13,6 +13,7 @@ from subscriptions.serializers.subscription_serializer import SubscriptionSerial
 from common.responses.api_response import APIResponse
 from common.constants.enums import OnboardingStep, SubscriptionAccessType, SubscriptionStatus
 from subscriptions.services.access_service import build_subscription_access_payload
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 
 class CreateSubscriptionView(GenericAPIView):
@@ -82,7 +83,7 @@ class GetActiveSubscriptionView(GenericAPIView):
 
         return APIResponse.success(
             data={
-                "plan": subscription.plan.name,
+                "plan": get_plan_display_name(subscription.plan),
                 "expiry": subscription.end_date
             }
         )

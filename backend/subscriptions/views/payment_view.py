@@ -16,6 +16,7 @@ from common.constants.enums import SubscriptionStatus, PaymentOrderStatus, Expen
 from gyms.models import Gym
 from expenses.models import Expense
 from common.permissions.super_admin_permission import IsSuperAdmin
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 
 
@@ -77,7 +78,7 @@ class CreatePaymentOrderView(GenericAPIView):
                     "gym_id":  str(gym_id),
                     "plan_id": str(plan_id),
                     "gym_name": gym.name,
-                    "plan_name": plan.name,
+                    "plan_name": get_plan_display_name(plan),
                 }
             })
         except Exception as e:
@@ -102,7 +103,7 @@ class CreatePaymentOrderView(GenericAPIView):
                 "razorpay_order_id": rz_order["id"],
                 "amount":            amount_paise,
                 "currency":          "INR",
-                "plan_name":         plan.name,
+                "plan_name":         get_plan_display_name(plan),
                 "plan_price":        float(plan.price),
                 "key_id":            settings.RAZORPAY_KEY_ID,  # safe to send to frontend
                 "gym_name":          gym.name,
@@ -194,7 +195,7 @@ class VerifyPaymentView(GenericAPIView):
                 Expense.objects.create(
                     gym_id=gym,
                     amount=plan.price,
-                    description=f"Gymora Subscription payment for plan '{plan.name}'",
+                    description=f"Gymora Subscription payment for plan '{get_plan_display_name(plan)}'",
                     category=ExpenseCategory.SUBSCRIPTION.value,
                 )
                 
@@ -211,7 +212,7 @@ class VerifyPaymentView(GenericAPIView):
             message="Payment verified — subscription activated!",
             data={
                 "subscription_id": str(subscription.subscription_id),
-                "plan":            plan.name,
+                "plan":            get_plan_display_name(plan),
                 "start_date":      str(start_date.date()),
                 "end_date":        str(end_date.date()),
                 "status":          SubscriptionStatus.ACTIVE.value,
@@ -239,7 +240,7 @@ class PaymentHistoryView(GenericAPIView):
                 "order_id":           str(o.order_id),
                 "razorpay_order_id":  o.razorpay_order_id,
                 "razorpay_payment_id": o.razorpay_payment_id,
-                "plan":               o.plan.name,
+                "plan":               get_plan_display_name(o.plan),
                 "amount":             float(o.amount),
                 "status":             o.status,
                 "created_at":         str(o.created_at.date()),
@@ -282,7 +283,7 @@ class SuperAdminPaymentListView(GenericAPIView):
                 "razorpay_payment_id": o.razorpay_payment_id or "—",
                 "gym_name":            o.gym_id.name,
                 "gym_id":              str(o.gym_id.gym_id),
-                "plan_name":           o.plan.name,
+                "plan_name":           get_plan_display_name(o.plan),
                 "plan_badge_color":    getattr(o.plan, "badge_color", "#3b82f6"),
                 "amount":              float(o.amount),
                 "status":              o.status,

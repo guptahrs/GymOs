@@ -1,6 +1,7 @@
 # subscriptions/serializers.py
 from rest_framework import serializers
 from subscriptions.models import Subscription
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -28,7 +29,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         ]
 
     def get_plan_name(self, obj):
-        return obj.plan.name if obj.plan else None
+        return get_plan_display_name(obj.plan) if obj.plan else None
 
     def get_plan_price(self, obj):
         return obj.plan.price if obj.plan else None

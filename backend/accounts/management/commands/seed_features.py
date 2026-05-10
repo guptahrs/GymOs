@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from subscriptions.models import Plan, PlanFeature, PlanFeatureMapping
 from accounts.models import Feature
 from common.constants.enums import FeatureCode, PlanName
+from subscriptions.services.plan_catalog_service import PLAN_CATALOG
 
 
 FEATURES = [
@@ -15,12 +16,6 @@ FEATURES = [
     (FeatureCode.WHITE_LABEL, FeatureCode.WHITE_LABEL.label),
 ]
 
-PLAN_FEATURES = {
-    PlanName.STANDARD: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD],
-    PlanName.ELITE:    [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES],
-    PlanName.PREMIUM_PLUS: [FeatureCode.MEMBERS, FeatureCode.STAFF, FeatureCode.DASHBOARD, FeatureCode.LEADS, FeatureCode.EXPENSES, FeatureCode.TRAINERS, FeatureCode.WHATSAPP, FeatureCode.WHITE_LABEL],}
-
-
 class Command(BaseCommand):
     help = "Seed plans, features, and plan-feature mappings"
 
@@ -33,16 +28,56 @@ class Command(BaseCommand):
         self.stdout.write("Features created.")
 
         # 2. Create plans if not exist
-        basic, _      = Plan.objects.get_or_create(name=PlanName.STANDARD,      defaults={"price": PlanName.STANDARD.price,  "duration_days": PlanName.STANDARD.duration_days, "badge_color": "#22c55e"})
-        pro, _        = Plan.objects.get_or_create(name=PlanName.ELITE,        defaults={"price": PlanName.ELITE.price, "duration_days": PlanName.ELITE.duration_days, "badge_color": "#a855f7"})
-        enterprise, _ = Plan.objects.get_or_create(name=PlanName.PREMIUM_PLUS, defaults={"price": PlanName.PREMIUM_PLUS.price, "duration_days": PlanName.PREMIUM_PLUS.duration_days, "badge_color": "#3b82f6"})
+        starter, _ = Plan.objects.update_or_create(
+            name=PlanName.STARTER.value,
+            defaults={
+                "description": PLAN_CATALOG[PlanName.STARTER.value]["description"],
+                "price": PlanName.STARTER.price,
+                "duration_days": PlanName.STARTER.duration_days,
+                "badge_color": PLAN_CATALOG[PlanName.STARTER.value]["badge_color"],
+                "is_active": True,
+                "is_deleted": False,
+            },
+        )
+        growth, _ = Plan.objects.update_or_create(
+            name=PlanName.GROWTH.value,
+            defaults={
+                "description": PLAN_CATALOG[PlanName.GROWTH.value]["description"],
+                "price": PlanName.GROWTH.price,
+                "duration_days": PlanName.GROWTH.duration_days,
+                "badge_color": PLAN_CATALOG[PlanName.GROWTH.value]["badge_color"],
+                "is_active": True,
+                "is_deleted": False,
+            },
+        )
+        elite, _ = Plan.objects.update_or_create(
+            name=PlanName.ELITE.value,
+            defaults={
+                "description": PLAN_CATALOG[PlanName.ELITE.value]["description"],
+                "price": PlanName.ELITE.price,
+                "duration_days": PlanName.ELITE.duration_days,
+                "badge_color": PLAN_CATALOG[PlanName.ELITE.value]["badge_color"],
+                "is_active": True,
+                "is_deleted": False,
+            },
+        )
         self.stdout.write("Plans created.")
 
-        plan_map = {PlanName.STANDARD: basic, PlanName.ELITE: pro, PlanName.PREMIUM_PLUS: enterprise}
+        plan_map = {
+            PlanName.STARTER.value: starter,
+            PlanName.GROWTH.value: growth,
+            PlanName.ELITE.value: elite,
+        }
+
+        Plan.objects.exclude(name__in=plan_map.keys()).update(is_active=False)
 
         # 3. Create PlanFeatureMapping rows
-        for plan_name, feature_codes in PLAN_FEATURES.items():
+        for plan_name, config in PLAN_CATALOG.items():
+            feature_codes = config["feature_codes"]
             plan = plan_map[plan_name]
+            PlanFeatureMapping.objects.filter(plan=plan).exclude(
+                feature__code__in=feature_codes
+            ).delete()
             for code in feature_codes:
                 pf = PlanFeature.objects.get(code=code)
                 PlanFeatureMapping.objects.get_or_create(plan=plan, feature=pf)

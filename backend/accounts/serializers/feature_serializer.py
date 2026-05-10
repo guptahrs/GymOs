@@ -2,6 +2,7 @@ from rest_framework import serializers
 from accounts.models import Feature, Role, Permission
 from subscriptions.models.plan_feature_model import PlanFeatureMapping
 from common.utills.feature_checker import has_feature
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 
 class FeatureSerializer(serializers.ModelSerializer):
@@ -20,7 +21,7 @@ class FeatureSerializer(serializers.ModelSerializer):
         return [
             {
                 "id": str(mapping.plan.plan_id),
-                "name": mapping.plan.name,
+                "name": get_plan_display_name(mapping.plan),
                 "badge_color": getattr(mapping.plan, "badge_color", "#3b82f6"),
             }
             for mapping in mappings

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from members.models import Member
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 
 class MemberCreateSerializer(serializers.Serializer):
@@ -86,7 +87,7 @@ class MemberSerializer(serializers.ModelSerializer):
 
     def get_current_plan_name(self, obj):
         subscription = self._get_latest_subscription(obj)
-        return subscription.plan.name if subscription and subscription.plan else None
+        return get_plan_display_name(subscription.plan) if subscription and subscription.plan else None
 
     def get_plan_valid_till(self, obj):
         subscription = self._get_latest_subscription(obj)

@@ -1,17 +1,18 @@
-from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import GenericAPIView, ListAPIView
 
 from accounts.models import User
+from common.constants.enums import OnboardingStep, UserType
+from common.responses.api_response import APIResponse
 from common.services.address_service import create_address
+from common.utills.plan_limits import ensure_member_capacity
+from common.utills.subscription_guard import ensure_gym_write_access
 from members.models import Member, MemberSubscription
 from members.serializers.member_serializer import MemberCreateSerializer, MemberSerializer
-from common.responses.api_response import APIResponse
-from common.constants.enums import UserType, OnboardingStep
-from common.utills.subscription_guard import ensure_gym_write_access
 
 
 class CreateMemberBasicView(GenericAPIView):
@@ -22,48 +23,49 @@ class CreateMemberBasicView(GenericAPIView):
         if access_error:
             return access_error
 
-        data = request.data
-        data["password"] = data.get("password", "defaultpassword123")  # Set default password if not provided
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        payload = request.data.copy()
+        payload["password"] = payload.get("password", "defaultpassword123")
 
+        serializer = self.get_serializer(data=payload)
+        serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # 🔥 Step 1: Create User
+        limit_error = ensure_member_capacity(data["gym_id"])
+        if limit_error:
+            return limit_error
+
         user = User.objects.create(
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
             phone=data["phone"],
             password=make_password(data["password"]),
-            user_type=UserType.STAFF
+            user_type=UserType.MEMBER,
+            gym_id=data["gym_id"],
         )
 
-        # 🔥 Step 2: Create Member
         member = Member.objects.create(
             user=user,
             gym_id=data["gym_id"],
-            onboarding_step=OnboardingStep.BASIC
+            onboarding_step=OnboardingStep.BASIC,
         )
 
         return APIResponse.success(
             message="Member basic created",
-            data={"member_id": str(member.member_id), "user_id": str(user.user_id)}
+            data={"member_id": str(member.member_id), "user_id": str(user.user_id)},
         )
 
-class AddMemberAddressView(GenericAPIView):
 
+class AddMemberAddressView(GenericAPIView):
     def post(self, request):
         access_error = ensure_gym_write_access(request)
         if access_error:
             return access_error
 
         member_id = request.data.get("user_id")
-
         member = Member.objects.get(user_id=member_id)
 
         address = create_address(request.data)
-
         member.address = address
         member.onboarding_step = OnboardingStep.ADDRESS
         member.save()
@@ -73,20 +75,9 @@ class AddMemberAddressView(GenericAPIView):
 
 class MemberListView(ListAPIView):
     serializer_class = MemberSerializer
-
-    filter_backends = [
-        DjangoFilterBackend,
-        SearchFilter,
-        OrderingFilter
-    ]
-
-    # 🔍 search
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["user__first_name", "user__email", "user__phone", "payment_status"]
-
-    # 🎯 filter
     filterset_fields = []
-
-    # ↕ ordering
     ordering_fields = ["created_at", "user__first_name"]
     ordering = ["-created_at"]
 
@@ -119,8 +110,8 @@ class MemberListView(ListAPIView):
                     to_attr="prefetched_subscriptions",
                 )
             )
-        except Exception as e:
-            print(f"Error fetching members: {e}")
+        except Exception as exc:
+            print(f"Error fetching members: {exc}")
             return Member.objects.none()
 
 
@@ -146,7 +137,7 @@ class MemberDetailView(GenericAPIView):
         member = self.get_object(request, member_id)
         if not member:
             return APIResponse.error("Member not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, member.gym_id_id)
+        access_error = ensure_gym_write_access(request, member.gym_id)
         if access_error:
             return access_error
 
@@ -178,7 +169,7 @@ class MemberDetailView(GenericAPIView):
         member = self.get_object(request, member_id)
         if not member:
             return APIResponse.error("Member not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, member.gym_id_id)
+        access_error = ensure_gym_write_access(request, member.gym_id)
         if access_error:
             return access_error
 

@@ -3,8 +3,10 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 
 from accounts.models import User
-from common.constants.enums import UserType
+from common.constants.enums import FeatureCode, UserType
 from common.responses.api_response import APIResponse
+from common.utills.feature_checker import has_feature
+from common.utills.plan_limits import ensure_staff_capacity
 from common.services.address_service import create_address
 from common.utills.subscription_guard import ensure_gym_write_access
 from staff.models import Trainer
@@ -47,6 +49,13 @@ class TrainerListCreateView(GenericAPIView):
         if not data.get("gym_id"):
             return APIResponse.error("Gym id is required", status=status.HTTP_400_BAD_REQUEST)
 
+        if not has_feature(data["gym_id"], FeatureCode.TRAINERS):
+            return APIResponse.error(
+                "Trainer management is available only on the Elite plan.",
+                errors={"error": "feature_not_in_plan"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # If trainer exists, load it
         trainer = None
         if trainer_id:
@@ -79,6 +88,10 @@ class TrainerListCreateView(GenericAPIView):
                     return APIResponse.error("Email is required", status=status.HTTP_400_BAD_REQUEST)
                 if User.objects.filter(email=data["email"], is_deleted=False).exists():
                     return APIResponse.error("Email already exists", status=status.HTTP_400_BAD_REQUEST)
+
+                limit_error = ensure_staff_capacity(data["gym_id"])
+                if limit_error:
+                    return limit_error
 
                 user = User.objects.create(
                     first_name=data.get("first_name") or "",
@@ -175,7 +188,7 @@ class TrainerDetailView(GenericAPIView):
         trainer = self.get_object(request, trainer_id)
         if not trainer:
             return APIResponse.error("Trainer not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, trainer.gym_id_id)
+        access_error = ensure_gym_write_access(request, trainer.gym_id)
         if access_error:
             return access_error
 
@@ -234,7 +247,7 @@ class TrainerDetailView(GenericAPIView):
         trainer = self.get_object(request, trainer_id)
         if not trainer:
             return APIResponse.error("Trainer not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, trainer.gym_id_id)
+        access_error = ensure_gym_write_access(request, trainer.gym_id)
         if access_error:
             return access_error
 

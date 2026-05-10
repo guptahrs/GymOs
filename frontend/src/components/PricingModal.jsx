@@ -318,9 +318,14 @@ export default function PricingModal({ isOpen, onClose, currentPlan }) {
                   <div className="flex h-full flex-col rounded-2xl bg-[#0B1220] p-5">
 
                     {/* Plan name */}
-                    <h3 className="text-lg font-semibold capitalize text-white">
-                      {plan.name.replace("_", " ")}
-                    </h3>
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
+                      {plan.highlight_text ? (
+                        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
+                          {plan.highlight_text}
+                        </span>
+                      ) : null}
+                    </div>
 
                     {/* Price */}
                     <p className="mt-2 text-3xl font-bold text-white">
@@ -332,7 +337,7 @@ export default function PricingModal({ isOpen, onClose, currentPlan }) {
 
                     {/* Features */}
                     <ul className="mt-4 flex-1 space-y-2">
-                      {(plan.features || []).map((feature, index) => (
+                      {(plan.marketing_features || plan.features || []).map((feature, index) => (
                         <li
                           key={index}
                           className="flex items-center gap-2 text-sm text-gray-300"

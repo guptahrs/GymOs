@@ -5,6 +5,7 @@ from common.permissions.super_admin_permission import IsSuperAdmin
 from common.permissions.gym_owner_permission import IsGymOwner
 from subscriptions.models import Plan, Subscription
 from subscriptions.serializers.plan_serializer import PlanListSerializer
+from subscriptions.services.plan_catalog_service import normalize_plan_name
 
 
 class CreatePlanView(GenericAPIView):
@@ -12,7 +13,9 @@ class CreatePlanView(GenericAPIView):
     permission_classes = [IsSuperAdmin]
 
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
+        payload = request.data.copy()
+        payload["name"] = normalize_plan_name(payload.get("name"))
+        serializer = self.get_serializer(data=payload)
         serializer.is_valid(raise_exception=True)
 
         plan = serializer.save()
@@ -29,7 +32,7 @@ class GetAllPlansView(GenericAPIView):
     
     
     def get(self, request):
-        all_plans = Plan.objects.all()
+        all_plans = Plan.objects.filter(is_deleted=False).order_by("price")
         data = PlanListSerializer(all_plans, many=True).data
         return APIResponse.success(message="All plans retrieved", data=data)
 
@@ -39,7 +42,7 @@ class GetAllActivePlansView(GenericAPIView):
     permission_classes = [IsGymOwner]
     
     def get(self, request):
-        active_plans = Plan.objects.filter(is_active=True)
+        active_plans = Plan.objects.filter(is_active=True, is_deleted=False).order_by("price")
         data = PlanListSerializer(active_plans, many=True).data
         monthly_plans = [plan for plan in data if plan['duration_days'] == 30]
         yearly_plans = [plan for plan in data if plan['duration_days'] == 365]

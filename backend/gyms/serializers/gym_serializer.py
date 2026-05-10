@@ -7,6 +7,7 @@ from common.constants.enums import UserType
 from common.utills.feature_checker import has_feature
 from common.constants.enums import FeatureCode
 from subscriptions.services.access_service import get_gym_access_context
+from subscriptions.services.plan_catalog_service import get_plan_display_name
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,11 +31,14 @@ class GymCreateSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
     class Meta:
         model = Plan
         fields = ["plan_id", "badge_color", "name"]
-        
-        
+
+    def get_name(self, obj):
+        return get_plan_display_name(obj)
 
 class GymOwnersSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()

@@ -256,7 +256,7 @@ export default function SuperAdminPlans() {
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Premium Plus"
+                  placeholder="e.g. Growth"
                   className="input"
                   required
                 />

@@ -5,6 +5,7 @@ from rest_framework.generics import GenericAPIView
 from accounts.models import User
 from common.constants.enums import UserType
 from common.responses.api_response import APIResponse
+from common.utills.plan_limits import ensure_staff_capacity
 from common.utills.subscription_guard import ensure_gym_write_access
 from staff.models import Staff
 from staff.serializers.staff_serializer import StaffCreateSerializer, StaffSerializer
@@ -44,6 +45,10 @@ class StaffListCreateView(GenericAPIView):
 
         if not data.get("gym_id"):
             return APIResponse.error("Gym id is required", status=status.HTTP_400_BAD_REQUEST)
+
+        limit_error = ensure_staff_capacity(data["gym_id"])
+        if limit_error:
+            return limit_error
 
         if User.objects.filter(email=data["email"], is_deleted=False).exists():
             return APIResponse.error("Email already exists", status=status.HTTP_400_BAD_REQUEST)
@@ -91,7 +96,7 @@ class StaffDetailView(GenericAPIView):
         staff = self.get_object(request, staff_id)
         if not staff:
             return APIResponse.error("Staff not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, staff.gym_id_id)
+        access_error = ensure_gym_write_access(request, staff.gym_id)
         if access_error:
             return access_error
 
@@ -123,7 +128,7 @@ class StaffDetailView(GenericAPIView):
         staff = self.get_object(request, staff_id)
         if not staff:
             return APIResponse.error("Staff not found", status=status.HTTP_404_NOT_FOUND)
-        access_error = ensure_gym_write_access(request, staff.gym_id_id)
+        access_error = ensure_gym_write_access(request, staff.gym_id)
         if access_error:
             return access_error
 

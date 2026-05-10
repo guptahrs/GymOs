@@ -10,9 +10,9 @@ class PlanName(models.TextChoices):
         obj.price = price
         obj.duration_days = duration_days
         return obj
-    STANDARD     = "standard",     "Standard", 999, 30
-    ELITE        = "elite",        "Elite", 2499, 30
-    PREMIUM_PLUS = "premium_plus", "Premium Plus", 4999, 30
+    STARTER = "starter", "Starter", 799, 30
+    GROWTH = "growth", "Growth", 1499, 30
+    ELITE = "elite", "Elite", 2999, 30
 
 
 class FeatureCode(models.TextChoices):
