@@ -44,6 +44,7 @@ class GetAllActivePlansView(GenericAPIView):
     def get(self, request):
         active_plans = Plan.objects.filter(is_active=True, is_deleted=False).order_by("price")
         data = PlanListSerializer(active_plans, many=True).data
+        print("\n\n\n\ Active plans data:", data)  # Debugging statement
         monthly_plans = [plan for plan in data if plan['duration_days'] == 30]
         yearly_plans = [plan for plan in data if plan['duration_days'] == 365]
         res_data = {

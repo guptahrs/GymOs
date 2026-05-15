@@ -1,11 +1,21 @@
 from django.urls import path
 from members.views.member_plan_view import AssignMemberPlanView
+from members.views.import_view import (
+    MemberImportJobDetailView,
+    MemberImportJobListView,
+    MemberImportTemplateMetaView,
+    MemberImportUploadView,
+)
 from members.views.membership_plan_views import MembershipPlanListCreateView, MembershipPlanDetailView
 from members.views.member_view import CreateMemberBasicView, AddMemberAddressView, MemberListView, MemberDetailView
 from members.views.lead_view import LeadListCreateView, ConvertLeadView
 from members.views.member_subscription_view import LatestMemberSubscriptionView
 
 urlpatterns = [
+    path("imports/upload/", MemberImportUploadView.as_view()),
+    path("imports/jobs/", MemberImportJobListView.as_view()),
+    path("imports/jobs/<uuid:import_job_id>/", MemberImportJobDetailView.as_view()),
+    path("imports/template-meta/", MemberImportTemplateMetaView.as_view()),
     path("create/", CreateMemberBasicView.as_view()),
     path("address/", AddMemberAddressView.as_view()),
     path("", MemberListView.as_view()),

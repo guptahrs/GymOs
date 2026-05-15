@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, CreditCard, Tag, ShieldCheck, Banknote } from "lucide-react";
+import { LayoutDashboard, Building2, CreditCard, Tag, ShieldCheck, Banknote, Upload, FileClock } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function SuperAdminSidebar({ collapsed = false }) {
@@ -11,7 +11,9 @@ export default function SuperAdminSidebar({ collapsed = false }) {
     { name: "Plans",         path: "/super-admin/plans",         icon: CreditCard },
     { name: "Features",      path: "/super-admin/features",      icon: Tag },
     { name: "Subscriptions", path: "/super-admin/subscriptions", icon: ShieldCheck },
-     { name: "Payments",      path: "/super-admin/payments",      icon: Banknote },
+    { name: "Member Import", path: "/super-admin/member-imports", icon: Upload },
+    { name: "File Logger",   path: "/super-admin/import-logs",    icon: FileClock },
+    { name: "Payments",      path: "/super-admin/payments",       icon: Banknote },
   ];
 
   return (

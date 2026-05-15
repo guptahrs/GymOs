@@ -1,5 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework.generics import GenericAPIView
+from django.db import transaction
 
 from gyms.serializers.gym_serializer import (
     GymBrandingSerializer,
@@ -11,13 +12,13 @@ from common.responses.api_response import APIResponse
 from common.constants.enums import OnboardingStep
 from common.services.address_service import create_address
 from gyms.models import Gym, GymBranding
-from common.utills.user_type_utils import is_super_user
 from accounts.models import User
 from common.constants.enums import UserType
 from common.permissions.super_admin_permission import IsSuperAdmin
 from common.permissions.gym_owner_permission import IsGymOwner
 from common.constants.enums import FeatureCode
 from common.utills.feature_checker import has_feature
+from subscriptions.models import Plan
 
 
 class CreateGymBasicView(GenericAPIView):
@@ -27,8 +28,8 @@ class CreateGymBasicView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        gym = serializer.save(onboarding_step=OnboardingStep.BASIC.value)
+        with transaction.atomic():
+            gym = serializer.save(onboarding_step=OnboardingStep.BASIC.value)
 
         return APIResponse.success(
             message="Basic details saved",

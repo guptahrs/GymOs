@@ -1,0 +1,4 @@
+first_name,last_name,phone,email,gender,dob,start_date,plan_type,plan_name,plan_price,amount_paid,pending_amount,pending_due_date,payment_mode
+Aman,Sharma,9876543210,aman.sharma@example.com,male,1998-04-12,2026-05-01,monthly,Monthly,1200,1200,0,,CASH
+Priya,Patel,9876543211,priya.patel@example.com,female,1996-08-21,2026-05-03,quarterly,Quarterly,3200,2000,1200,2026-06-10,UPI
+Rahul,Verma,9876543212,,male,1994-01-09,2026-05-05,yearly,Yearly,12000,12000,0,,CARD

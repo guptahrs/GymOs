@@ -259,3 +259,47 @@ class UpcomingRenewalsView(GenericAPIView):
             })
 
         return APIResponse.success(data=data)
+
+
+class UpcomingDuePaymentsView(GenericAPIView):
+    """Members with payments due within N days."""
+
+    def get(self, request):
+        gym_id = get_gym_id(request)
+        if not gym_id:
+            return APIResponse.error("gym_id missing from token", status=401)
+
+        days = int(request.query_params.get("days", 7))
+        today = timezone.now().date()
+        until = today + timedelta(days=days)
+
+        subscriptions = (
+            MemberSubscription.objects
+            .filter(
+                gym_id=gym_id,
+                status="active",
+                is_deleted=False,
+                remaining_amount__gt=0,
+                estimated_remaining_payment_date__isnull=False,
+                estimated_remaining_payment_date__gte=today,
+                estimated_remaining_payment_date__lte=until,
+            )
+            .select_related("member__user", "plan")
+            .order_by("estimated_remaining_payment_date", "end_date")
+        )
+
+        data = []
+        for subscription in subscriptions:
+            due_date = subscription.estimated_remaining_payment_date
+            days_left = (due_date - today).days
+            data.append({
+                "member_id": str(subscription.member.member_id),
+                "name": f"{subscription.member.user.first_name} {subscription.member.user.last_name}",
+                "plan": subscription.plan.name if subscription.plan else None,
+                "due_date": str(due_date),
+                "days_left": days_left,
+                "amount": float(subscription.remaining_amount or 0),
+                "status": "due",
+            })
+
+        return APIResponse.success(data=data)

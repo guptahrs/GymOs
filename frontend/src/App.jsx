@@ -18,6 +18,8 @@ import SuperAdminGyms from "./pages/SuperAdminGyms";
 import SuperAdminPlans from "./pages/SuperAdminPlans";
 import SuperAdminFeatures from "./pages/SuperAdminFeatures";
 import SuperAdminSubscriptions from "./pages/SuperAdminSubscriptions";
+import SuperAdminMemberImport from "./pages/SuperAdminMemberImport";
+import SuperAdminImportLogs from "./pages/SuperAdminImportLogs";
 // Placeholders for forms
 import GymAddForm from "./pages/GymAddForm";
 import GymOwnerAddForm from "./pages/GymOwnerAddForm";
@@ -118,6 +120,16 @@ export default function App() {
           <Route path="/super-admin/subscriptions" element={
             <ProtectedRoute allowedRoles={["super_admin"]}>
               <SuperAdminSubscriptions />
+            </ProtectedRoute>
+          } />
+          <Route path="/super-admin/member-imports" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminMemberImport />
+            </ProtectedRoute>
+          } />
+          <Route path="/super-admin/import-logs" element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminImportLogs />
             </ProtectedRoute>
           } />
           <Route path="/gyms/add" element={
